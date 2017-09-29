@@ -27,11 +27,24 @@ public class D_AIControl : D_CharacterControl
         Debug.Log("Initializing AIControl: " + name);
     }
 
-    void Update ()
+    public override Vector3 GetMoveVector()
+    {
+        Debug.Log("GetMoveVector: " + bDoing);
+        if(!bDoing)
+        {
+            return Vector3.zero;
+        }
+        else
+        {
+            return mCurrentAction.mMoveVector;
+        }
+    }
+
+    new protected void Update ()
     {
         if(mCurrentAction != null)
         {
-            bDoing = mCurrentAction.ExecuteAction(mCharacter);
+            bDoing = mCurrentAction.ExecuteAction();
         }
         else
         {
@@ -42,6 +55,8 @@ public class D_AIControl : D_CharacterControl
         {
             StartCoroutine("Think");
         }
+
+        base.Update();
 	}
 
     IEnumerator Think()
@@ -80,7 +95,7 @@ public class D_AIControl : D_CharacterControl
         {
             foreach (D_ITargetable target in targetsInRange)
             {
-                viableActionCopies.Add( action.Test(target) );
+                viableActionCopies.Add( action.Test(target, this) );
                 thinkCycles++;
                 mTotalThinkCycles++;
 

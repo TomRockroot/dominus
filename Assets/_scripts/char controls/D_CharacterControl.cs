@@ -26,7 +26,7 @@ public class D_CharacterControl : MonoBehaviour {
         }
     }
 
-	void Update ()
+    protected void Update ()
     {
         mMoveVector = GetMoveVector();
         CheckMouseButton(0);

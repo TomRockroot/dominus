@@ -8,12 +8,22 @@ public class D_AI_Action : MonoBehaviour
     public float mPoints;
 
     public D_ITargetable mTarget;
+    public D_AIControl mOwner;
 
-    public D_AI_Action Test(D_ITargetable target)
+    public Vector3 mMoveVector = Vector3.zero;
+
+    public D_AI_Action Test(D_ITargetable target, D_AIControl owner)
     {
         D_AI_Action copy = Instantiate(this);
-        copy.mPoints = copy.mConnectedUtility.ComputePoints(target);
+        if (copy.mConnectedUtility != null)
+        {
+            copy.mPoints = copy.mConnectedUtility.ComputePoints(target);
+        }
         copy.mTarget = target;
+        copy.mOwner  = owner;
+
+        copy.transform.parent = owner.transform;
+
         return copy;
     }
 
@@ -22,7 +32,7 @@ public class D_AI_Action : MonoBehaviour
 
         maybe change that to enum E_AI_ActionRunningThingy
     */
-    public bool ExecuteAction(D_Character owner)
+    public virtual bool ExecuteAction()
     {
         return false;
     }

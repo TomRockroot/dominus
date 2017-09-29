@@ -6,6 +6,9 @@ using UnityEngine;
 
 public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITargetable
 {
+    // Other
+    public float mInteractionRange = 1.0f;
+
 
     // Attributes
     public D_Dice.EDieType mStrength = D_Dice.EDieType.DT_D4;
