@@ -29,14 +29,13 @@ public class D_AIControl : D_CharacterControl
 
     public override Vector3 GetMoveVector()
     {
-        Debug.Log("GetMoveVector: " + bDoing);
         if(!bDoing)
         {
             return Vector3.zero;
         }
         else
         {
-            return mCurrentAction.mMoveVector;
+            return mCurrentAction.mMoveVector.normalized;
         }
     }
 
@@ -62,6 +61,11 @@ public class D_AIControl : D_CharacterControl
     IEnumerator Think()
     {
         bThinking = true;
+
+        if (mCurrentAction != null)
+        {
+            Destroy(mCurrentAction.gameObject);
+        }
 
         List<D_AI_Action> viableActionCopies = new List<D_AI_Action>();
         List<D_ITargetable> allTargets = D_GameMaster.GetInstance().GetAllTargetables();
@@ -104,7 +108,7 @@ public class D_AIControl : D_CharacterControl
                     mThinkBubbleUI.text = "" + mTotalThinkCycles;
                 }
 
-                if (mTotalThinkCycles >= mMaxThinkCyclesPerFrame)
+                if (mTotalThinkCycles >= mMaxThinkCyclesTotal)
                 {
                     break;
                 }
@@ -116,7 +120,7 @@ public class D_AIControl : D_CharacterControl
                 }
             }
 
-            if (mTotalThinkCycles >= mMaxThinkCyclesPerFrame)
+            if (mTotalThinkCycles >= mMaxThinkCyclesTotal)
             {
                 
                 break;
@@ -132,7 +136,16 @@ public class D_AIControl : D_CharacterControl
         {
             if(mCurrentAction != null)
             {
-
+                // Compare points
+                if(mCurrentAction.mPoints < action.mPoints)
+                {
+                    Destroy(mCurrentAction.gameObject);
+                    mCurrentAction = action;
+                }
+                else
+                {
+                    Destroy(action.gameObject);
+                }
             }
             else
             {
@@ -141,7 +154,7 @@ public class D_AIControl : D_CharacterControl
             bDoing = true;
         }
         
-
+        
 
         bThinking = false;
     }

@@ -17,7 +17,7 @@ public class D_AI_Action : MonoBehaviour
         D_AI_Action copy = Instantiate(this);
         if (copy.mConnectedUtility != null)
         {
-            copy.mPoints = copy.mConnectedUtility.ComputePoints(target);
+            copy.mPoints = copy.mConnectedUtility.ComputePoints(target, owner);
         }
         copy.mTarget = target;
         copy.mOwner  = owner;

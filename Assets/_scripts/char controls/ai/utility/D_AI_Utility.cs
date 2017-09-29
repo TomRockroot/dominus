@@ -6,7 +6,7 @@ public class D_AI_Utility : MonoBehaviour
 {
     public D_AI_Sensor mSensor;
 
-    public float ComputePoints(D_ITargetable target)
+    public virtual float ComputePoints(D_ITargetable target, D_AIControl owner)
     {
         return 0.0f;
     }
