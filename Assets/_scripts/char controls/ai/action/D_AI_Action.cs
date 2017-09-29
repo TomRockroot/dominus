@@ -7,10 +7,13 @@ public class D_AI_Action : MonoBehaviour
     public D_AI_Utility mConnectedUtility;
     public float mPoints;
 
+    public D_ITargetable mTarget;
+
     public D_AI_Action Test(D_ITargetable target)
     {
         D_AI_Action copy = Instantiate(this);
         copy.mPoints = copy.mConnectedUtility.ComputePoints(target);
+        copy.mTarget = target;
         return copy;
     }
 
@@ -19,7 +22,7 @@ public class D_AI_Action : MonoBehaviour
 
         maybe change that to enum E_AI_ActionRunningThingy
     */
-    public bool ExecuteAction()
+    public bool ExecuteAction(D_Character owner)
     {
         return false;
     }

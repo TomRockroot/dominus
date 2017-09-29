@@ -29,6 +29,15 @@ public class D_AIControl : D_CharacterControl
 
     void Update ()
     {
+        if(mCurrentAction != null)
+        {
+            bDoing = mCurrentAction.ExecuteAction(mCharacter);
+        }
+        else
+        {
+            bDoing = false;
+        }
+
 		if(!bThinking && !bDoing)
         {
             StartCoroutine("Think");
@@ -39,6 +48,11 @@ public class D_AIControl : D_CharacterControl
     {
         bThinking = true;
 
+        List<D_AI_Action> viableActionCopies = new List<D_AI_Action>();
+        List<D_ITargetable> allTargets = D_GameMaster.GetInstance().GetAllTargetables();
+        List<D_ITargetable> targetsInRange = new List<D_ITargetable>();
+        int thinkCycles = 0;
+
         if (mThinkBubbleUI != null)
         {
             mThinkBubbleUI.text = "?";
@@ -46,10 +60,7 @@ public class D_AIControl : D_CharacterControl
         }
 
         // Notice-Check
-        List<D_ITargetable> allTargets = D_GameMaster.GetInstance().GetAllTargetables();
-        List<D_ITargetable> targetsInRange = new List<D_ITargetable>();
-
-        foreach(D_ITargetable target in allTargets)
+        foreach (D_ITargetable target in allTargets)
         {
             if(target as Object == mCharacter)
             {
@@ -63,56 +74,60 @@ public class D_AIControl : D_CharacterControl
         }
         Debug.Log(targetsInRange.Count + " targets in Range");
 
-        while (bThinking)
+        
+        // Then run action on each object
+        foreach (D_AI_Action action in mViableActions)
         {
-            // Then run action on each object
-            foreach (D_AI_Action action in mViableActions)
+            foreach (D_ITargetable target in targetsInRange)
             {
-                foreach (D_ITargetable target in targetsInRange)
-                {
-                    action.Test(target);
-                }
-            }
-
-            
-            for (int i = 0; i < mMaxThinkCyclesPerFrame; i++)
-            {
-                
-                if (mMaxThinkCyclesTotal > mTotalThinkCycles)
-                {
-                    // HERE IS WHERE THE MAGIC HAPPENS !!
-
-                    // <(o.o<) ^(o.o)^ (>o.o)>
-                   
-                }
-                else
-                {
-                    Debug.Log("DONE THINKING! \n TotalThinkCycles(" + mTotalThinkCycles + ") surpassed ViableActions(" + mViableActions.Count + ")");
-                    bThinking = false;
-                }
-               
+                viableActionCopies.Add( action.Test(target) );
+                thinkCycles++;
                 mTotalThinkCycles++;
+
+                if(mThinkBubbleUI != null)
+                {
+                    mThinkBubbleUI.text = "" + mTotalThinkCycles;
+                }
+
+                if (mTotalThinkCycles >= mMaxThinkCyclesPerFrame)
+                {
+                    break;
+                }
+
+                if (thinkCycles >= mMaxThinkCyclesPerFrame)
+                {
+                    thinkCycles = 0;
+                    yield return new WaitForEndOfFrame();
+                }
+            }
+
+            if (mTotalThinkCycles >= mMaxThinkCyclesPerFrame)
+            {
                 
-            }
-            
-
-            if (mThinkBubbleUI != null)
-            {
-                mThinkBubbleUI.text = "" + mTotalThinkCycles;
-            }
-
-            if (mTotalThinkCycles >= mMaxThinkCyclesTotal)
-            {
-                bThinking = false;
-                Debug.Log("I AM DONE THINKING! " + mTotalThinkCycles);
-                mTotalThinkCycles = 0;
-            }
-            else
-            {
-                yield return new WaitForEndOfFrame();
+                break;
             }
         }
 
+        Debug.Log("I AM DONE THINKING! " + mTotalThinkCycles);
+        mTotalThinkCycles = 0;
+
+        // ToDo: Get the best possible Action, and set it to be done!
         
+        foreach(D_AI_Action action in viableActionCopies)
+        {
+            if(mCurrentAction != null)
+            {
+
+            }
+            else
+            {
+                mCurrentAction = action;
+            }
+            bDoing = true;
+        }
+        
+
+
+        bThinking = false;
     }
 }
