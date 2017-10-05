@@ -33,12 +33,7 @@ public class D_Structure : MonoBehaviour, D_ITargetable
         UnregisterFromGameMaster();
     }
 
-    public virtual void InteractPrimary(D_CharacterControl cntl)
-    {
-
-    }
-
-    public virtual void InteractSecondary(D_CharacterControl cntl)
+    public virtual void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
 
     }

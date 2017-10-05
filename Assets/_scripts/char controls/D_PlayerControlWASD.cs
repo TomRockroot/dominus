@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class D_PlayerControlWASD : D_CharacterControl {
 
+    public D_Interaction mPreparedInteraction;
 
     public override Vector3 GetMoveVector()
     {
@@ -24,10 +25,10 @@ public class D_PlayerControlWASD : D_CharacterControl {
                     switch (button)
                     {
                         case 0:
-                            hit.transform.GetComponent<D_ITargetable>().InteractPrimary(this);
+                            
                             break;
                         case 1:
-                            hit.transform.GetComponent<D_ITargetable>().InteractSecondary(this);
+                            hit.transform.GetComponent<D_ITargetable>().Interact(this, mPreparedInteraction);
                             break;
                     }
                 }

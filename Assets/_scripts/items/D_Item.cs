@@ -25,15 +25,11 @@ public class D_Item : MonoBehaviour, D_ITargetable
         }
     }
 
-    public virtual void InteractPrimary(D_CharacterControl cntl)
+    public virtual void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
-        Debug.LogWarning("InteractPrimary not implemented for " + name);
+        Debug.LogWarning("Interact not implemented for " + name);
     }
 
-    public virtual void InteractSecondary(D_CharacterControl cntl)
-    {
-        Debug.LogWarning("InteractSecondary not implemented for " + name);
-    }
 
     public void RemoveFromInventory(D_IInventory from)
     {

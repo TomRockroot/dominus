@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class D_WoodLog : D_Item
 {
-    public override void InteractPrimary(D_CharacterControl cntl)
+    public override void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
         // if character has skill
         D_Skill skill = cntl.mCharacter.GetSkill(D_StructsAndEnums.EBonus.B_PickItem);
@@ -16,10 +16,5 @@ public class D_WoodLog : D_Item
         {
             Debug.Log("No Skill for " + D_StructsAndEnums.EBonus.B_PickItem);
         }
-    }
-
-    public override void InteractSecondary(D_CharacterControl cntl)
-    {
-
     }
 }

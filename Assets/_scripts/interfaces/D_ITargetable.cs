@@ -10,9 +10,8 @@ public interface D_ITargetable
     int GetIntegrity();
     void SetIntegrity(int integrity);
 
-    void InteractPrimary(D_CharacterControl cntl);
-    void InteractSecondary(D_CharacterControl cntl);
-
+    void Interact(D_CharacterControl cntl, D_Interaction interaction);
+  
     void RegisterWithGameMaster();
     void UnregisterFromGameMaster();
 }

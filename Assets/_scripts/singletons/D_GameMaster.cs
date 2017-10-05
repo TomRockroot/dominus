@@ -14,7 +14,7 @@ public class D_GameMaster : MonoBehaviour {
             return;
         }
         mAllTargetables.Add(targetable);
-        Debug.LogWarning("AVAILABLE TARGETS: " + mAllTargetables.Count);
+      //  Debug.LogWarning("AVAILABLE TARGETS: " + mAllTargetables.Count);
     }
 
     public void UnregisterTargetable(D_ITargetable targetable)
@@ -25,6 +25,7 @@ public class D_GameMaster : MonoBehaviour {
             return;
         }
         mAllTargetables.Remove(targetable);
+      //  Debug.LogWarning("AVAILABLE TARGETS: " + mAllTargetables.Count);
     }
 
     public List<D_ITargetable> GetAllTargetables()

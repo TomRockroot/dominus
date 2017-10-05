@@ -77,7 +77,7 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
         }
     }
 
-    public override void InteractPrimary(D_CharacterControl cntl)
+    public override void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
         // if character has skill
         D_Skill skill = cntl.mCharacter.GetSkill(D_StructsAndEnums.EBonus.B_WoodCutting);
@@ -85,13 +85,6 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
         {
             skill.ExecuteSkill(this);
         }
-         
-    }
-
-    public override void InteractSecondary(D_CharacterControl cntl)
-    {
-        // shake tree
-        Debug.Log(name + " Shake Shake!");
     }
 
     void OnDestroy()

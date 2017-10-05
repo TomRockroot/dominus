@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class D_AI_AConsume : D_AI_Action
+public class D_AI_AInteraction : D_AI_Action
 {
+    public D_Interaction mPreparedInteraction;
 
     public override bool ExecuteAction()
     {
@@ -14,7 +15,7 @@ public class D_AI_AConsume : D_AI_Action
 
         Vector3 ownerToTarget = mTarget.GetTransform().position - mOwner.mCharacter.transform.position;
 
-        Debug.Log("Executing " + name + " ownerToTarget " + ownerToTarget + " \n magnitude " + ownerToTarget.magnitude + " target " + mTarget.GetTransform().name);
+      //  Debug.Log("Executing " + name + " ownerToTarget " + ownerToTarget + " \n magnitude " + ownerToTarget.magnitude + " target " + mTarget.GetTransform().name);
 
         if(mOwner.mCharacter.mInteractionRange < ownerToTarget.magnitude)
         {
@@ -24,7 +25,7 @@ public class D_AI_AConsume : D_AI_Action
         }
         else
         {
-            mTarget.InteractSecondary(mOwner);
+            mTarget.Interact(mOwner, mPreparedInteraction);
             return false;
         }
 

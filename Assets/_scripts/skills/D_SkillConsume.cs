@@ -20,19 +20,24 @@ public class D_SkillConsume : D_Skill
         }
         D_ItemConsumable consumable = item as D_ItemConsumable;
         
-        if(consumable.mEffect == null)
+        if(consumable.mInteraction == null)
         {
-            Debug.LogWarning("No Effect in " + consumable.name);
+            if(consumable.mInteraction.mEffect == null)
+            {
+                Debug.LogWarning("No Effect in " + consumable.name);
+                return false;
+            }
+            Debug.LogWarning("No Interaction in " + consumable.name);
             return false;
         }
 
         // if(mOwner possess the right need)
-        if(consumable.mEffect is D_EffectNeed)
+        if(consumable.mInteraction.mEffect is D_EffectNeed)
         {
-            if(mOwner.HasRelevantNeed( ((D_EffectNeed) consumable.mEffect).mNeedType ))
+            if(mOwner.HasRelevantNeed( ((D_EffectNeed) consumable.mInteraction.mEffect).mNeedType ))
             {
                 // Spawn Effect
-                GameObject effectGO = Instantiate(consumable.mEffect.gameObject, mOwner.transform);
+                GameObject effectGO = Instantiate(consumable.mInteraction.mEffect.gameObject, mOwner.transform);
                 mOwner.mEffects.Add(effectGO.GetComponent<D_Effect>());
 
                 return true;
@@ -44,7 +49,7 @@ public class D_SkillConsume : D_Skill
         }
         else
         {
-            GameObject effectGO = Instantiate(consumable.mEffect.gameObject, mOwner.transform);
+            GameObject effectGO = Instantiate(consumable.mInteraction.mEffect.gameObject, mOwner.transform);
             mOwner.mEffects.Add(effectGO.GetComponent<D_Effect>());
 
             return true;

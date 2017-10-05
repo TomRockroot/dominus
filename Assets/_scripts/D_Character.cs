@@ -195,12 +195,7 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         UnregisterFromGameMaster();
     }
 
-    public virtual void InteractPrimary(D_CharacterControl cntl)
-    {
-
-    }
-
-    public virtual void InteractSecondary(D_CharacterControl cntl)
+    public virtual void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
 
     }

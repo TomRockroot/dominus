@@ -4,37 +4,20 @@ using UnityEngine;
 
 public class D_ItemConsumable : D_Item
 {
-    public D_Effect mEffect;
+    public D_Interaction mInteraction;
 
     // ===== PICK UP =====
-    public override void InteractPrimary(D_CharacterControl cntl)
+    public override void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
         // if character has skill
-        D_Skill skill = cntl.mCharacter.GetSkill(D_StructsAndEnums.EBonus.B_PickItem);
+        D_Skill skill = cntl.mCharacter.GetSkill(mInteraction.mSkillNeeded);
         if (skill != null)
         {
             skill.ExecuteSkill(this);
         }
         else
         {
-            Debug.Log("No Skill for " + D_StructsAndEnums.EBonus.B_PickItem);
-        }
-    }
-
-    // ===== CONSUME =====
-    public override void InteractSecondary(D_CharacterControl cntl)
-    {
-        D_Skill skill = cntl.mCharacter.GetSkill(D_StructsAndEnums.EBonus.B_ConsumeItem);
-        if (skill != null)
-        {
-            if(skill.ExecuteSkill(this))
-            {
-                Destroy(gameObject);
-            }
-        }
-        else
-        {
-            Debug.Log("No Skill for " + D_StructsAndEnums.EBonus.B_ConsumeItem);
+            Debug.Log("No Skill for " + mInteraction.mSkillNeeded);
         }
     }
 }
