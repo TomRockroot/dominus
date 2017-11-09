@@ -14,32 +14,38 @@ public class D_SkillConsume : D_Skill
         {
             return false;
         }
-        if(! (item is D_ItemConsumable))
+
+        D_Interaction foundInteraction = null;
+
+        foreach (D_Interaction possibleInt in item.mPossibleInteractions)
         {
-            return false;
-        }
-        D_ItemConsumable consumable = item as D_ItemConsumable;
-        
-        if(consumable.mInteraction == null)
-        {
-            if(consumable.mInteraction.mEffect == null)
+            if (possibleInt.mSkillNeeded == D_StructsAndEnums.EBonus.B_ConsumeItem)
             {
-                Debug.LogWarning("No Effect in " + consumable.name);
+                foundInteraction = possibleInt;
+                break;
+            }
+        }
+
+        if(foundInteraction == null)
+        {
+            if(foundInteraction.mEffect == null)
+            {
+                Debug.LogWarning("No Effect in " + item.name);
                 return false;
             }
-            Debug.LogWarning("No Interaction in " + consumable.name);
+            Debug.LogWarning("No Interaction in " + item.name);
             return false;
         }
 
         // if(mOwner possess the right need)
-        if(consumable.mInteraction.mEffect is D_EffectNeed)
+        if(foundInteraction.mEffect is D_EffectNeed)
         {
-            if(mOwner.HasRelevantNeed( ((D_EffectNeed) consumable.mInteraction.mEffect).mNeedType ))
+            if(mOwner.HasRelevantNeed( ((D_EffectNeed) foundInteraction.mEffect).mNeedType ))
             {
                 // Spawn Effect
-                GameObject effectGO = Instantiate(consumable.mInteraction.mEffect.gameObject, mOwner.transform);
+                GameObject effectGO = Instantiate(foundInteraction.mEffect.gameObject, mOwner.transform);
                 mOwner.mEffects.Add(effectGO.GetComponent<D_Effect>());
-
+                Destroy(item.gameObject);
                 return true;
             }
             else
@@ -49,9 +55,9 @@ public class D_SkillConsume : D_Skill
         }
         else
         {
-            GameObject effectGO = Instantiate(consumable.mInteraction.mEffect.gameObject, mOwner.transform);
+            GameObject effectGO = Instantiate(foundInteraction.mEffect.gameObject, mOwner.transform);
             mOwner.mEffects.Add(effectGO.GetComponent<D_Effect>());
-
+            Destroy(item.gameObject);
             return true;
         }
     }

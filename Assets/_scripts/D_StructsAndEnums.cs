@@ -37,6 +37,19 @@ public static class D_StructsAndEnums
         B_None
     }
 
+    public enum ECharacterDice
+    {
+        // Attributes
+        CD_Strength,
+        CD_Agility,
+        CD_Spirit,
+        CD_Smarts,
+        CD_Vigor,
+
+        // Skills
+        CD_WoodCutting
+    }
+
     public enum ENeed
     {
         // Physiological

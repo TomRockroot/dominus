@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class D_UI_CharacterSheet : MonoBehaviour {
 
-    public D_UI_Inventory mInventoryUI;
-    public D_UI_Needs mNeedsUI;
+    public D_UI_Inventory        mInventoryUI;
+    public D_UI_Needs            mNeedsUI;
 
 
     // ==== SINGLETON SHIT ====

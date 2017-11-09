@@ -75,7 +75,7 @@ public class D_AIControl : D_CharacterControl
         if (mThinkBubbleUI != null)
         {
             mThinkBubbleUI.text = "?";
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(0.001f);
         }
 
         // Notice-Check
@@ -93,13 +93,18 @@ public class D_AIControl : D_CharacterControl
         }
         Debug.Log(targetsInRange.Count + " targets in Range");
 
-        
+        D_AI_Action tempAction;
+
         // Then run action on each object
         foreach (D_AI_Action action in mViableActions)
         {
             foreach (D_ITargetable target in targetsInRange)
             {
-                viableActionCopies.Add( action.Test(target, this) );
+                tempAction = action.Test(target, this);
+                if (tempAction != null)
+                {
+                    viableActionCopies.Add(tempAction);
+                }
                 thinkCycles++;
                 mTotalThinkCycles++;
 

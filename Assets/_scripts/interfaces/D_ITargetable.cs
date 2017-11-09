@@ -11,6 +11,7 @@ public interface D_ITargetable
     void SetIntegrity(int integrity);
 
     void Interact(D_CharacterControl cntl, D_Interaction interaction);
+    List<D_Interaction> GetInteractions();
   
     void RegisterWithGameMaster();
     void UnregisterFromGameMaster();

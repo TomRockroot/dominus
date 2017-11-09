@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class D_Fruit : D_ItemConsumable
+public class D_Fruit : D_Item
 {
     protected Color   mOriginalColor;
     protected Vector3 mOriginalSize;

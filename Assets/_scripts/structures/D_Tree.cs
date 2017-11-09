@@ -77,16 +77,6 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
         }
     }
 
-    public override void Interact(D_CharacterControl cntl, D_Interaction interaction)
-    {
-        // if character has skill
-        D_Skill skill = cntl.mCharacter.GetSkill(D_StructsAndEnums.EBonus.B_WoodCutting);
-        if (skill != null)
-        {
-            skill.ExecuteSkill(this);
-        }
-    }
-
     void OnDestroy()
     {
         DropInventory();

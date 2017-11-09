@@ -12,7 +12,7 @@ public class D_AI_Action : MonoBehaviour
 
     public Vector3 mMoveVector = Vector3.zero;
 
-    public D_AI_Action Test(D_ITargetable target, D_AIControl owner)
+    public virtual D_AI_Action Test(D_ITargetable target, D_AIControl owner)
     {
         D_AI_Action copy = Instantiate(this);
         if (copy.mConnectedUtility != null)

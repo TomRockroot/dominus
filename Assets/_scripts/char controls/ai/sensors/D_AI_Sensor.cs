@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class D_AI_Sensor : MonoBehaviour
 {
-    public virtual D_AI_Action RunSensor()
+    public virtual float RunSensor(D_ITargetable target, D_AIControl owner, out float min, out float max)
     {
-        return null;
+        min = 0f;
+        max = 0f;
+        return 0f;
     }
 	
 }

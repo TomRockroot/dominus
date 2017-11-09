@@ -6,6 +6,31 @@ public class D_AI_AInteraction : D_AI_Action
 {
     public D_Interaction mPreparedInteraction;
 
+    public override D_AI_Action Test(D_ITargetable target, D_AIControl owner)
+    {
+        bool sane = false;
+
+        List<D_Interaction> interactions = target.GetInteractions();
+
+        foreach( D_Interaction interaction in interactions)
+        {
+            if(mPreparedInteraction.mSkillNeeded == interaction.mSkillNeeded)
+            {
+                sane = true;
+                break;
+            }
+        }
+
+        if (!sane)
+        {
+            return null;
+        }
+        else
+        {
+            return base.Test(target, owner);
+        }
+    }
+
     public override bool ExecuteAction()
     {
         if (mTarget == null)

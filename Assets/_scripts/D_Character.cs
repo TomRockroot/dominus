@@ -9,6 +9,8 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
     // Other
     public float mInteractionRange = 1.0f;
 
+    // Character Dice
+  //  public D_Dice.EDieType[] mCharacterDice = new D_Dice.EDieType[ Enum.GetValues( typeof(D_StructsAndEnums.ECharacterDice)).Length ];
 
     // Attributes
     public D_Dice.EDieType mStrength = D_Dice.EDieType.DT_D4;
@@ -164,7 +166,17 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
     {
         RegisterWithGameMaster();
 
-        foreach(D_Need need in pNeeds)
+        /*
+        Debug.Log(name + " has " + mCharacterDice.Length + " CharacterDice!");
+        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Agility       + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Agility]);
+        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Strength      + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Strength]);
+        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Smarts        + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Smarts]);
+        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Spirit        + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Spirit]);
+        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Vigor         + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Vigor]);
+        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_WoodCutting   + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_WoodCutting]);
+        */
+
+        foreach (D_Need need in pNeeds)
         {
             GameObject needGO = Instantiate(need.gameObject, this.transform);
             mNeeds.Add(needGO.GetComponent<D_Need>());
@@ -195,9 +207,39 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         UnregisterFromGameMaster();
     }
 
-    public virtual void Interact(D_CharacterControl cntl, D_Interaction interaction)
-    {
 
+    // ===== INTERACTION !! =====
+    public List<D_Interaction> mPossibleInteractions;
+    public List<D_Interaction> GetInteractions() { return mPossibleInteractions; }
+
+    public void Interact(D_CharacterControl cntl, D_Interaction interaction)
+    {
+        D_Interaction foundInteraction = null;
+        foreach (D_Interaction possibleInt in mPossibleInteractions)
+        {
+            if (possibleInt.mSkillNeeded == interaction.mSkillNeeded)
+            {
+                foundInteraction = possibleInt;
+                break;
+            }
+        }
+
+        if (foundInteraction == null)
+        {
+            Debug.LogError("Moppelkotze!");
+            return;
+        }
+
+        // if character has skill
+        D_Skill skill = cntl.mCharacter.GetSkill(foundInteraction.mSkillNeeded);
+        if (skill != null)
+        {
+            skill.ExecuteSkill(this);
+        }
+        else
+        {
+            Debug.Log("No Skill for " + foundInteraction.mSkillNeeded);
+        }
     }
 
     public Transform GetTransform() { return transform; }

@@ -25,9 +25,40 @@ public class D_Item : MonoBehaviour, D_ITargetable
         }
     }
 
-    public virtual void Interact(D_CharacterControl cntl, D_Interaction interaction)
+    public List<D_Interaction> mPossibleInteractions;
+    public List<D_Interaction> GetInteractions() { return mPossibleInteractions; }
+
+    public void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
-        Debug.LogWarning("Interact not implemented for " + name);
+        D_Interaction foundInteraction = null;
+        foreach (D_Interaction possibleInt in mPossibleInteractions)
+        {
+            if (possibleInt.mSkillNeeded == interaction.mSkillNeeded)
+            {
+                foundInteraction = possibleInt;
+                break;
+            }
+        }
+
+        if (foundInteraction == null)
+        {
+            Debug.LogError("Moppelkotze!");
+            return;
+        }
+
+        // if character has skill
+        D_Skill skill = cntl.mCharacter.GetSkill(foundInteraction.mSkillNeeded);
+        if (skill != null)
+        {
+            // <(o.o<) ^(o.o)^ (>o.o)>
+            // ToDo: CHANGE THIS TO foundInteraction.ExecuteInteraction(this) !!!!  !!!!! !!!!! !!!! !!!!!!! !!!!!!!! !!!!!!!! !!!!!!! !!!!!!! !!!!!!!!!!
+            // =================================== HERE! =======================================
+            skill.ExecuteSkill(this);
+        }
+        else
+        {
+            Debug.Log("No Skill for " + foundInteraction.mSkillNeeded);
+        }
     }
 
 
