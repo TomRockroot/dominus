@@ -10,6 +10,7 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
         if (integrity <= 0)
         {
             ProduceResource();
+            DropInventory();
         }
         base.SetIntegrity(integrity);
     }
@@ -23,9 +24,10 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
     public void RemoveFromInventory(D_Item item)
     {
         mFruits.Remove(item);
-     //   Debug.LogError("item: " + item + " item.GetTransform() " + item.GetTransform() + " parent: " + item.GetTransform().parent);
+      //  Debug.LogError("item: " + item + " item.GetTransform() " + item.GetTransform() + " parent: " + item.GetTransform().parent);
         item.GetTransform().parent = transform.parent;
     }
+
     public void DropInventory()
     {
         foreach (D_Item item in mFruits)
@@ -61,7 +63,7 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
                 // spawn Fruit
                 GameObject fruit = Instantiate(pFruitPrefab, transform);
                 fruit.transform.position = transform.position + Vector3.up * 0.01f + Vector3.right * 1f * UnityEngine.Random.Range(-1f, 1f) + Vector3.forward * 1f * UnityEngine.Random.Range(-1f, 1f);
-                fruit.GetComponent<D_Fruit>().AddToInventory(this);
+                fruit.GetComponent<D_Fruit>().AddSelfToInventory(this);
 
                 // reset timer
                 mFruitSpawnTimer = 3600f / mFruitsPerHour;
@@ -75,10 +77,5 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
         {
             fruit.Grow();
         }
-    }
-
-    void OnDestroy()
-    {
-        DropInventory();
     }
 }

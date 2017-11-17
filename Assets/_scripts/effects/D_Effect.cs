@@ -1,10 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using D_StructsAndEnums;
 
-public class D_Effect : MonoBehaviour {
+public class D_Effect : MonoBehaviour
+{
+    public EEffectType mEffectType;
 
-    public D_StructsAndEnums.EBonus mBonusType = D_StructsAndEnums.EBonus.B_None;
+    public ESkillDice       mSkillType;
+    public EAttributeDice   mAttributeType;
+    public EDerivedStat     mDerivedType;
+
     public int mAmount;
 
     public float mStartLifeTime = 1f;
@@ -39,9 +45,33 @@ public class D_Effect : MonoBehaviour {
         return true;
     }
 
-    public int GetPassiveBonus(D_StructsAndEnums.EBonus bonusType)
+    public int GetPassiveSkill(ESkillDice skillType)
     {
-        if (bonusType != mBonusType)
+        if (skillType != mSkillType)
+        {
+            return 0;
+        }
+        else
+        {
+            return mAmount;
+        }
+    }
+
+    public int GetPassiveAttribute(EAttributeDice attributeType)
+    {
+        if (attributeType != mAttributeType)
+        {
+            return 0;
+        }
+        else
+        {
+            return mAmount;
+        }
+    }
+
+    public int GetPassiveDerived(EDerivedStat derivedType)
+    {
+        if (derivedType != mDerivedType)
         {
             return 0;
         }

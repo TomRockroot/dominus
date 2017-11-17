@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public static class D_StructsAndEnums
+namespace D_StructsAndEnums
 {
 	public enum EFaction
     {
@@ -10,6 +10,18 @@ public static class D_StructsAndEnums
         F_Wildlife,       
     }
 
+    public enum EDieType
+    {
+        DT_D4,
+        DT_D6,
+        DT_D8,
+        DT_D10,
+        DT_D12,
+        DT_None
+    }
+
+
+    // deprecate this
     public enum EBonus
     {
         // Attributes
@@ -37,17 +49,50 @@ public static class D_StructsAndEnums
         B_None
     }
 
-    public enum ECharacterDice
+    public enum EEffectType
     {
-        // Attributes
-        CD_Strength,
-        CD_Agility,
-        CD_Spirit,
-        CD_Smarts,
-        CD_Vigor,
+        ET_Skill,
+        ET_Attribute,
+        ET_Derived
+    }
+
+    public enum ESkillDice
+    {
+        SD_None,
 
         // Skills
-        CD_WoodCutting
+        SD_WoodCutting,
+        SD_Cooking,
+        SD_Smithing,
+        SD_Hunting,
+
+        SD_Fighting,
+        SD_Shooting
+    }
+
+    public enum EAttributeDice
+    {
+        // Attributes
+        AD_Strength,
+        AD_Agility,
+        AD_Spirit,
+        AD_Smarts,
+        AD_Vigor
+    }
+
+    public enum EDerivedStat
+    {
+        DS_Pace,
+        DS_Parry,
+        DS_Toughness,
+        DS_Charisma
+    }
+
+    public enum EFloatText
+    {
+        FT_Debug,
+        FT_Success,
+        FT_Speech
     }
 
     public enum ENeed

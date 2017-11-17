@@ -2,113 +2,92 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using D_StructsAndEnums;
 
-
-public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITargetable
+public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITargetable, IPointerClickHandler
 {
     // Other
     public float mInteractionRange = 1.0f;
+    public float mInteractionSpeed = 1.0f;
+
+    public D_Interaction mTargetedByInteraction;
+
+    public D_CharacterControl mController;
+    public D_CharacterAnimator mAnimator;
 
     // Character Dice
-  //  public D_Dice.EDieType[] mCharacterDice = new D_Dice.EDieType[ Enum.GetValues( typeof(D_StructsAndEnums.ECharacterDice)).Length ];
+    //  public D_Dice.EDieType[] mCharacterDice = new D_Dice.EDieType[ Enum.GetValues( typeof(D_StructsAndEnums.ECharacterDice)).Length ];
+    protected Dictionary<ESkillDice, EDieType> mSkillDict = new Dictionary<ESkillDice, EDieType>();
+    protected Dictionary<EAttributeDice, EDieType> mAttributeDict = new Dictionary<EAttributeDice, EDieType>();
 
-    // Attributes
-    public D_Dice.EDieType mStrength = D_Dice.EDieType.DT_D4;
-    public D_Dice.EDieType mAgility  = D_Dice.EDieType.DT_D4;
-    public D_Dice.EDieType mSpirit   = D_Dice.EDieType.DT_D4;
-    public D_Dice.EDieType mSmarts   = D_Dice.EDieType.DT_D4;
-    public D_Dice.EDieType mVigor    = D_Dice.EDieType.DT_D4;
-
-    public D_Dice.EDieType GetAttributeDie(D_StructsAndEnums.EBonus attribute)
+    // Attributes 
+    public EDieType GetAttributeDie(EAttributeDice attribute)
     {
-        switch(attribute)
+        EDieType value;
+        if( mAttributeDict.TryGetValue(attribute, out value) ) // Can be improved -->
         {
-            case D_StructsAndEnums.EBonus.B_Strength:
-                return mStrength;
-            case D_StructsAndEnums.EBonus.B_Agility:
-                return mAgility;
-            case D_StructsAndEnums.EBonus.B_Spirit:
-                return mSpirit;
-            case D_StructsAndEnums.EBonus.B_Smarts:
-                return mSmarts;
-            case D_StructsAndEnums.EBonus.B_Vigor:
-                return mVigor;
+            return value;
         }
 
-        return D_Dice.EDieType.DT_None;
+        return EDieType.DT_None;
+    }
+
+    private void PopulateAttributeDictionary()
+    {
+        foreach(EAttributeDice attributeDie in Enum.GetValues(typeof(EAttributeDice)))
+        {
+            mAttributeDict.Add(attributeDie, EDieType.DT_D4);
+        }
+
+        Debug.Log("Populated AttributeDictionary for " + name + " with " + mAttributeDict.Count + " Attributes!");
+    }
+
+    // Skills
+    public EDieType GetSkillDie(ESkillDice skill)
+    {
+        EDieType value;
+        if( mSkillDict.TryGetValue(skill, out value) )
+        {
+            return value;
+        }
+
+        return EDieType.DT_None;
+    }
+
+    private void PopulateSkillDictionary()
+    {
+        foreach (ESkillDice skillDie in Enum.GetValues(typeof(ESkillDice)))
+        {
+            mSkillDict.Add(skillDie, EDieType.DT_D4);
+        }
+
+        Debug.Log("Populated SkillDictionary for " + name + " with " + mSkillDict.Count + " Skills!");
     }
 
     // Derived 
     public int GetPace()
     {
-        return Mathf.FloorToInt(D_Dice.DieTypeToInt(mAgility) + GetAllEffectBoni(D_StructsAndEnums.EBonus.B_Pace));
+        return Mathf.FloorToInt( D_Dice.DieTypeToInt(GetAttributeDie(EAttributeDice.AD_Agility) ) + GetEffectDerivedBoni(EDerivedStat.DS_Pace));
     }
 
     public int GetParry()
     {
-        return Mathf.FloorToInt(D_Dice.DieTypeToInt(mAgility) * 0.5f + 2 + GetAllEffectBoni(D_StructsAndEnums.EBonus.B_Parry));
+        return Mathf.FloorToInt( D_Dice.DieTypeToInt(GetAttributeDie(EAttributeDice.AD_Agility) ) * 0.5f + 2 + GetEffectDerivedBoni(EDerivedStat.DS_Parry));
     }
 
     public int GetToughness()
     {
-        return Mathf.FloorToInt(D_Dice.DieTypeToInt(mVigor) * 0.5f + 2 + GetAllEffectBoni(D_StructsAndEnums.EBonus.B_Toughness));
+        return Mathf.FloorToInt(D_Dice.DieTypeToInt(GetAttributeDie(EAttributeDice.AD_Vigor) ) * 0.5f + 2 + GetEffectDerivedBoni(EDerivedStat.DS_Toughness));
     }
 
     public int GetCharisma()
     {
-        return Mathf.FloorToInt(D_Dice.DieTypeToInt(mVigor) * 0.5f + 2 + GetAllEffectBoni(D_StructsAndEnums.EBonus.B_Charisma));
+        return Mathf.FloorToInt(D_Dice.DieTypeToInt(GetAttributeDie(EAttributeDice.AD_Vigor) ) * 0.5f + 2 + GetEffectDerivedBoni(EDerivedStat.DS_Charisma));
     }
 
-    // Skills
-    public List<D_Skill> mSkills = new List<D_Skill>();
-    public D_Skill GetSkill(D_StructsAndEnums.EBonus bonus)
-    {
-        foreach (D_Skill skill in mSkills)
-        {
-            if(skill.mBonusType == bonus)
-            {
-                return skill;
-            }
-        }
-        return null;
-    }
-
-    // ============  Needs ============
-    public List<D_Need> pNeeds = new List<D_Need>();
-        // Needs must be instantiated (or values will be changed on the prefab!!! )
-    public List<D_Need> mNeeds = new List<D_Need>();
-
-    public float mHappiness;
-    public float mFatigue;
-
-    public bool HasRelevantNeed(D_StructsAndEnums.ENeed needType)
-    {
-        foreach (D_Need need in mNeeds)
-        {
-            if (need.mNeedType == needType)
-            {
-                return true;
-            }
-        }
-
-        Debug.LogWarning("NoNeed " + needType);
-        return false;
-    }
-
-    public bool SatisfyNeed(D_StructsAndEnums.ENeed needType, float amount)
-    {
-        foreach (D_Need need in mNeeds)
-        {
-            if (need.mNeedType == needType)
-            {
-                need.SetSatisfaction( need.mSatisfaction + amount);
-                return true;
-            }
-        }
-
-        Debug.LogWarning("NoNeed " + needType);
-        return false;
-    }
+    // ============ Needs ============
+    
 
     // ============ Equipment ============
     public List<D_Equipment> mEquipment = new List<D_Equipment>();
@@ -118,8 +97,8 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
     public void AddToInventory(D_Item item)
     {
-        Debug.Log("MOPPELKOTZE");
         mInventory.Add(item);
+
         if(D_UI_CharacterSheet.GetInstance().mInventoryUI != null)
         {
             D_UI_CharacterSheet.GetInstance().mInventoryUI.UpdateUI(mInventory);
@@ -128,8 +107,8 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
     public void RemoveFromInventory(D_Item item)
     {
-        bool what = mInventory.Remove(item);
-        Debug.Log(what + " the hell?");
+        mInventory.Remove(item);
+
         item.GetTransform().parent = transform.parent;
     }
 
@@ -141,52 +120,56 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         }
     }
 
-    // Effects 
+    // Effects (incorporates Needs)
+    public float mHappiness;
+
     public List<D_Effect> mEffects = new List<D_Effect>();
-    public List<D_Effect> GetEffects() { return mEffects; }  
+    public List<D_Effect> GetEffects() { return mEffects; }
 
-
-    public int GetAllEffectBoni(D_StructsAndEnums.EBonus bonus)
+    public int GetEffectAttributeBoni(EAttributeDice attribute)
     {
         int sum = 0;
 
-        foreach(D_Effect effect in mEffects)
+        foreach (D_Effect effect in mEffects)
         {
-            sum += effect.GetPassiveBonus(bonus);
+            sum += effect.GetPassiveAttribute(attribute);
         }
 
         return sum;
     }
 
-    // Virtues
+    public int GetEffectSkillBoni(ESkillDice skill)
+    {
+        int sum = 0;
 
-    // Vices
+        foreach(D_Effect effect in mEffects)
+        {
+            sum += effect.GetPassiveSkill(skill);
+        }
+
+        return sum;
+    }
+
+    public int GetEffectDerivedBoni(EDerivedStat derived)
+    {
+        int sum = 0;
+
+        foreach (D_Effect effect in mEffects)
+        {
+            sum += effect.GetPassiveDerived(derived);
+        }
+
+        return sum;
+    }
 
     void Start()
     {
         RegisterWithGameMaster();
+        PopulateAttributeDictionary();
+        PopulateSkillDictionary();
 
-        /*
-        Debug.Log(name + " has " + mCharacterDice.Length + " CharacterDice!");
-        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Agility       + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Agility]);
-        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Strength      + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Strength]);
-        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Smarts        + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Smarts]);
-        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Spirit        + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Spirit]);
-        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_Vigor         + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_Vigor]);
-        Debug.Log(D_StructsAndEnums.ECharacterDice.CD_WoodCutting   + ": " + mCharacterDice[(int)D_StructsAndEnums.ECharacterDice.CD_WoodCutting]);
-        */
-
-        foreach (D_Need need in pNeeds)
-        {
-            GameObject needGO = Instantiate(need.gameObject, this.transform);
-            mNeeds.Add(needGO.GetComponent<D_Need>());
-            needGO.GetComponent<D_Need>().SetOwner(this);
-        }
-
-        foreach(D_Skill skill in mSkills)
-        {
-            skill.SetOwner(this);
-        }
+        mAnimator = GetComponent<D_CharacterAnimator>();
+        mController = GetComponent<D_CharacterControl>();
     }
 
     void Update()
@@ -194,11 +177,6 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         foreach(D_Effect effect in mEffects)
         {
             effect.RunEffect(this);
-        }
-
-        foreach(D_Need need in mNeeds)
-        {
-            need.CheckSatisfaction();
         }
     }
 
@@ -217,7 +195,7 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         D_Interaction foundInteraction = null;
         foreach (D_Interaction possibleInt in mPossibleInteractions)
         {
-            if (possibleInt.mSkillNeeded == interaction.mSkillNeeded)
+            if (possibleInt == interaction)
             {
                 foundInteraction = possibleInt;
                 break;
@@ -230,16 +208,25 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
             return;
         }
 
-        // if character has skill
-        D_Skill skill = cntl.mCharacter.GetSkill(foundInteraction.mSkillNeeded);
-        if (skill != null)
-        {
-            skill.ExecuteSkill(this);
-        }
-        else
-        {
-            Debug.Log("No Skill for " + foundInteraction.mSkillNeeded);
-        }
+        mTargetedByInteraction = Instantiate(interaction);
+        mTargetedByInteraction.transform.SetParent(cntl.transform);
+
+        mTargetedByInteraction.ExecuteInteraction(cntl.mCharacter, this);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        D_GameMaster.GetInstance().GetCurrentController().PrepareTarget(this);
+    }
+
+    public float GetInteractionRange()
+    {
+        return mInteractionRange;
+    }
+
+    public float GetInteractionSpeed()
+    {
+        return mInteractionSpeed;
     }
 
     public Transform GetTransform() { return transform; }
@@ -255,4 +242,6 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
     {
         D_GameMaster.GetInstance().UnregisterTargetable(this);
     }
+
+    
 }

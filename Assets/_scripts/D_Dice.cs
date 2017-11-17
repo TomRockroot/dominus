@@ -1,18 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using D_StructsAndEnums;
 
 public static class D_Dice {
 
-    public enum EDieType
-    {
-        DT_D4,
-        DT_D6,
-        DT_D8,
-        DT_D10,
-        DT_D12,
-        DT_None
-    }
+   
 
     public static int RollDie(EDieType dieType)
     {

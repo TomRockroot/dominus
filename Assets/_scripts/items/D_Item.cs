@@ -1,15 +1,19 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class D_Item : MonoBehaviour, D_ITargetable
+public class D_Item : MonoBehaviour, D_ITargetable, IPointerClickHandler
 {
     public D_IInventory mStashedInInventory;
     public Sprite mInventorySprite;
 
     public int mParry = 2;
     public int mIntegrity = 100;
+
+    public D_Interaction mTargetedByInteraction;
 
     // === Get / Set by Interface ==
     public Transform GetTransform() { return transform; }
@@ -33,7 +37,7 @@ public class D_Item : MonoBehaviour, D_ITargetable
         D_Interaction foundInteraction = null;
         foreach (D_Interaction possibleInt in mPossibleInteractions)
         {
-            if (possibleInt.mSkillNeeded == interaction.mSkillNeeded)
+            if (possibleInt == interaction)
             {
                 foundInteraction = possibleInt;
                 break;
@@ -46,43 +50,40 @@ public class D_Item : MonoBehaviour, D_ITargetable
             return;
         }
 
-        // if character has skill
-        D_Skill skill = cntl.mCharacter.GetSkill(foundInteraction.mSkillNeeded);
-        if (skill != null)
-        {
-            // <(o.o<) ^(o.o)^ (>o.o)>
-            // ToDo: CHANGE THIS TO foundInteraction.ExecuteInteraction(this) !!!!  !!!!! !!!!! !!!! !!!!!!! !!!!!!!! !!!!!!!! !!!!!!! !!!!!!! !!!!!!!!!!
-            // =================================== HERE! =======================================
-            skill.ExecuteSkill(this);
-        }
-        else
-        {
-            Debug.Log("No Skill for " + foundInteraction.mSkillNeeded);
-        }
+
+        mTargetedByInteraction = Instantiate(interaction);
+        mTargetedByInteraction.transform.SetParent(cntl.transform);
+
+        mTargetedByInteraction.ExecuteInteraction(cntl.mCharacter, this);
     }
 
 
-    public void RemoveFromInventory(D_IInventory from)
+    public void RemoveSelfFromInventory(D_IInventory from)
     {
         if (from != null)
         {
-          //  Debug.Log("from: " + from + " removed!");
-            from.RemoveFromInventory(this);
-            mStashedInInventory = null;
+            if (!from.Equals(null))
+            {
+                // Debug.LogError("from: " + from + " removed! Type: " + from.GetType());
+                from.RemoveFromInventory(this);
+                mStashedInInventory = null;
+            }
         }
     }
 
-    public void AddToInventory(D_IInventory to)
+    public void AddSelfToInventory(D_IInventory to)
     {
         mStashedInInventory = to;
         to.AddToInventory(this);
+        transform.parent = to.GetTransform();
+        transform.localPosition = Vector3.zero;
     }
 
-    public void SwitchInventory(D_IInventory from, D_IInventory to)
+    public void SwitchSelfInventory(D_IInventory from, D_IInventory to)
     {
        // Debug.Log("from: " + from + " to: " + to);
-        RemoveFromInventory(from);
-        AddToInventory(to);
+        RemoveSelfFromInventory(from);
+        AddSelfToInventory(to);
     }
 
     void Start()
@@ -92,8 +93,13 @@ public class D_Item : MonoBehaviour, D_ITargetable
 
     void OnDestroy()
     {
-        RemoveFromInventory(mStashedInInventory);
+        RemoveSelfFromInventory(mStashedInInventory);
         UnregisterFromGameMaster();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        D_GameMaster.GetInstance().GetCurrentController().PrepareTarget(this);
     }
 
     public void RegisterWithGameMaster()
@@ -104,5 +110,15 @@ public class D_Item : MonoBehaviour, D_ITargetable
     public void UnregisterFromGameMaster()
     {
         D_GameMaster.GetInstance().UnregisterTargetable(this);
+    }
+
+    public float GetInteractionRange()
+    {
+        return 1f; 
+    }
+
+    public float GetInteractionSpeed()
+    {
+        return 1f;
     }
 }

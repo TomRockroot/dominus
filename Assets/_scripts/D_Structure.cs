@@ -1,11 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class D_Structure : MonoBehaviour, D_ITargetable
+public class D_Structure : MonoBehaviour, D_ITargetable, IPointerClickHandler
 {
     public int mParry     = 2;
     public int mIntegrity = 100;
+
+    public D_Interaction mTargetedByInteraction;
 
     // === Get / Set by Interface ==
     public Transform GetTransform() { return transform; }
@@ -15,7 +19,7 @@ public class D_Structure : MonoBehaviour, D_ITargetable
     public virtual void SetIntegrity(int integrity)
     {
         mIntegrity = integrity;
-        if (mIntegrity < 0)
+        if (mIntegrity <= 0)
         {
             Destroy(gameObject);
         }
@@ -33,6 +37,11 @@ public class D_Structure : MonoBehaviour, D_ITargetable
         UnregisterFromGameMaster();
     }
 
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        D_GameMaster.GetInstance().GetCurrentController().PrepareTarget(this);
+    }
+
 
     public List<D_Interaction> mPossibleInteractions;
     public List<D_Interaction> GetInteractions() { return mPossibleInteractions; }
@@ -42,7 +51,7 @@ public class D_Structure : MonoBehaviour, D_ITargetable
         D_Interaction foundInteraction = null;
         foreach (D_Interaction possibleInt in mPossibleInteractions)
         {
-            if (possibleInt.mSkillNeeded == interaction.mSkillNeeded)
+            if (possibleInt == interaction)
             {
                 foundInteraction = possibleInt;
                 break;
@@ -55,16 +64,10 @@ public class D_Structure : MonoBehaviour, D_ITargetable
             return;
         }
 
-        // if character has skill
-        D_Skill skill = cntl.mCharacter.GetSkill(foundInteraction.mSkillNeeded);
-        if (skill != null)
-        {
-            skill.ExecuteSkill(this);
-        }
-        else
-        {
-            Debug.Log("No Skill for " + foundInteraction.mSkillNeeded);
-        }
+        mTargetedByInteraction = Instantiate(interaction);
+        mTargetedByInteraction.transform.SetParent(cntl.transform);
+
+        mTargetedByInteraction.ExecuteInteraction(cntl.mCharacter, this);
     }
 
     public void RegisterWithGameMaster()
@@ -75,5 +78,15 @@ public class D_Structure : MonoBehaviour, D_ITargetable
     public void UnregisterFromGameMaster()
     {
         D_GameMaster.GetInstance().UnregisterTargetable(this);
+    }
+
+    public float GetInteractionRange()
+    {
+        return 1f;
+    }
+
+    public float GetInteractionSpeed()
+    {
+        return 1f;
     }
 }

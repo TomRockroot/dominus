@@ -5,6 +5,25 @@ using UnityEngine;
 public class D_GameMaster : MonoBehaviour {
 
     private List<D_ITargetable> mAllTargetables = new List<D_ITargetable>();
+    private D_PlayerControl mCurrentController;
+
+    public float mGameMoveSpeed = 1.0f;
+
+    public float GetGameMoveSpeed()
+    {
+        return mGameMoveSpeed;
+    }
+
+    public void SetCurrentController(D_PlayerControl controller)
+    {
+        mCurrentController = controller;
+    }
+
+    public D_PlayerControl GetCurrentController()
+    {
+        return mCurrentController;
+    }
+
 
     public void RegisterTargetable(D_ITargetable targetable)
     {

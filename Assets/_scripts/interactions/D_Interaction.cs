@@ -1,14 +1,21 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using D_StructsAndEnums;
 
 public class D_Interaction : MonoBehaviour
 {
-    public D_StructsAndEnums.EBonus mSkillNeeded;
+    public string mName = "Some Interaction";
+
+    public ESkillDice mSkillNeeded = ESkillDice.SD_None;
     public D_Effect mEffect;
 
-    public virtual bool ExecuteInteraction()
+    protected D_Character mSubject;
+    protected D_ITargetable mTarget;
+
+    public virtual void ExecuteInteraction(D_Character subject, D_ITargetable target)
     {
-        return true;
+        Debug.Log(subject.GetTransform().name + " is doing '" + mName + "' with " + target.GetTransform().name);
+
     }
 }

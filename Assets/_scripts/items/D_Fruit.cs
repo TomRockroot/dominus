@@ -30,6 +30,4 @@ public class D_Fruit : D_Item
 
         return mSize;
     }
-
-
 }

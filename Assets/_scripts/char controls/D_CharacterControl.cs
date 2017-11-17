@@ -5,13 +5,16 @@ using UnityEngine;
 public class D_CharacterControl : MonoBehaviour {
 
     public Vector3 mMoveVector = Vector3.zero;
+    public bool bMovementOverride = false;
 
     public D_Character mCharacter;
+
+    protected D_GameMaster GAME_MASTER;
 
     void Start()
     {
         Initialize();
-        
+        GAME_MASTER = D_GameMaster.GetInstance();
     }
 
     protected virtual void Initialize()
@@ -28,14 +31,11 @@ public class D_CharacterControl : MonoBehaviour {
 
     protected void Update ()
     {
-        mMoveVector = GetMoveVector();
-        CheckMouseButton(0);
-        CheckMouseButton(1);
-
+        if(!bMovementOverride) mMoveVector = GetMoveVector();
 
         if (mMoveVector.magnitude > 0.01f)
         {
-            transform.position += mMoveVector * mCharacter.GetPace() * Time.deltaTime;
+            transform.position += mMoveVector * mCharacter.GetPace() * Time.deltaTime * GAME_MASTER.GetGameMoveSpeed();
         }
 	}
 
@@ -44,8 +44,8 @@ public class D_CharacterControl : MonoBehaviour {
         return Vector3.zero;
     }
 
-    public virtual void CheckMouseButton(int button = 0)
+    public void OverrideMovement(bool val)
     {
-
+        bMovementOverride = val;
     }
 }

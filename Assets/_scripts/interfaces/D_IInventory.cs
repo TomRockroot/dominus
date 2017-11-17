@@ -7,4 +7,6 @@ public interface D_IInventory
     void RemoveFromInventory(D_Item item);
     void AddToInventory(D_Item item);
     void DropInventory();
+
+    Transform GetTransform();
 }

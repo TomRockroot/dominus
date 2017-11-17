@@ -12,7 +12,10 @@ public interface D_ITargetable
 
     void Interact(D_CharacterControl cntl, D_Interaction interaction);
     List<D_Interaction> GetInteractions();
-  
+
+    float GetInteractionRange();
+    float GetInteractionSpeed();
+
     void RegisterWithGameMaster();
     void UnregisterFromGameMaster();
 }
