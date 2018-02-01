@@ -1,13 +1,25 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using D_StructsAndEnums;
+using System;
 
-public class D_GameMaster : MonoBehaviour {
+public class D_GameMaster : MonoBehaviour, D_IInventory
+{
+    [HideInInspector]
+    public EDebugLevel mDebugFlags = 0;
 
     private List<D_ITargetable> mAllTargetables = new List<D_ITargetable>();
     private D_PlayerControl mCurrentController;
 
+    private List<D_Item> mWorldInventory = new List<D_Item>();
+
     public float mGameMoveSpeed = 1.0f;
+
+    public bool IsFlagged(EDebugLevel flag)
+    {
+        return (mDebugFlags & flag) == flag;
+    }
 
     public float GetGameMoveSpeed()
     {
@@ -49,6 +61,7 @@ public class D_GameMaster : MonoBehaviour {
 
     public List<D_ITargetable> GetAllTargetables()
     {
+        mAllTargetables.RemoveAll(D_ITargetable => D_ITargetable == null);
         return mAllTargetables;
     }
 
@@ -62,5 +75,30 @@ public class D_GameMaster : MonoBehaviour {
             GAME_MASTER = FindObjectOfType<D_GameMaster>();
         }
         return GAME_MASTER; 
+    }
+
+    public void RemoveFromInventory(D_Item item)
+    {
+        mWorldInventory.Remove(item);
+    }
+
+    public void AddToInventory(D_Item item)
+    {
+        mWorldInventory.Add(item);
+    }
+
+    public void DropInventory()
+    {
+        throw new NotImplementedException();
+    }
+
+    public List<D_Item> GetInventory()
+    {
+        return mWorldInventory;
+    }
+
+    public Transform GetTransform()
+    {
+        return transform;
     }
 }

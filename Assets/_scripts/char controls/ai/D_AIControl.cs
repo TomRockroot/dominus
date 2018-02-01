@@ -21,10 +21,16 @@ public class D_AIControl : D_CharacterControl
     public List<D_AI_Action> mViableActions = new List<D_AI_Action>();
     public List<D_AI_Action> mWeightedActions = new List<D_AI_Action>();
 
+    public override void OverrideMovement(bool val)
+    {
+        base.OverrideMovement(val);
+        bDoing = false;
+    }
+
     protected override void Initialize()
     {
         base.Initialize();
-        Debug.Log("Initializing AIControl: " + name);
+        if (D_GameMaster.GetInstance().IsFlagged(D_StructsAndEnums.EDebugLevel.DL_AI_Message)) { Debug.Log("Initializing AIControl: " + name); }
     }
 
     public override Vector3 GetMoveVector()
@@ -52,7 +58,7 @@ public class D_AIControl : D_CharacterControl
 
 		if(!bThinking && !bDoing)
         {
-            StartCoroutine("Think");
+            StartCoroutine(Think());
         }
 
         base.Update();
@@ -75,7 +81,7 @@ public class D_AIControl : D_CharacterControl
         if (mThinkBubbleUI != null)
         {
             mThinkBubbleUI.text = "?";
-            yield return new WaitForSeconds(0.001f);
+            yield return new WaitForEndOfFrame();
         }
 
         // Notice-Check
@@ -83,15 +89,24 @@ public class D_AIControl : D_CharacterControl
         {
             if(target as Object == mCharacter)
             {
-                Debug.Log("Ignore self!");
+                if (D_GameMaster.GetInstance().IsFlagged(D_StructsAndEnums.EDebugLevel.DL_AI_Message)) { Debug.Log("Ignore self!"); }
                 continue;
             }
-            if((target.GetTransform().position - transform.position).magnitude < mAINoticeRange)
+            if(target.Equals(null))
+            {
+                Debug.LogError("HARHARHARHAR! I AM EVIL CODE!");
+            }
+            if (target == null)
+            {
+                Debug.LogError("I do not understand this!");
+            }
+
+            if ((target.GetTransform().position - transform.position).magnitude < mAINoticeRange)
             {
                 targetsInRange.Add(target);
             }
         }
-        Debug.Log(targetsInRange.Count + " targets in Range");
+        if (D_GameMaster.GetInstance().IsFlagged(D_StructsAndEnums.EDebugLevel.DL_AI_Message)) { Debug.Log(targetsInRange.Count + " targets in Range"); }
 
         D_AI_Action tempAction;
 
@@ -100,10 +115,21 @@ public class D_AIControl : D_CharacterControl
         {
             foreach (D_ITargetable target in targetsInRange)
             {
-                tempAction = action.Test(target, this);
-                if (tempAction != null)
+                if (!target.Equals(null))
                 {
-                    viableActionCopies.Add(tempAction);
+                    tempAction = action.Test(target, this); // IF NOT VIABLE, RETURNS NULL
+                    if (tempAction != null)
+                    {
+                        viableActionCopies.Add(tempAction);
+                    }
+                    else
+                    {
+                       // Debug.LogWarning(name + "'s Test was unviable for " + target.GetTransform().name);
+                    }
+                }
+                else
+                {
+                   // Debug.LogWarning("WOLOLO!");
                 }
                 thinkCycles++;
                 mTotalThinkCycles++;
@@ -132,31 +158,37 @@ public class D_AIControl : D_CharacterControl
             }
         }
 
-        Debug.Log("I AM DONE THINKING! " + mTotalThinkCycles);
+        if (D_GameMaster.GetInstance().IsFlagged(D_StructsAndEnums.EDebugLevel.DL_AI_Message)) { Debug.Log("I AM DONE THINKING! " + mTotalThinkCycles); }
         mTotalThinkCycles = 0;
 
         // ToDo: Get the best possible Action, and set it to be done!
-        
-        foreach(D_AI_Action action in viableActionCopies)
+        if (viableActionCopies.Count > 0)
         {
-            if(mCurrentAction != null)
+            foreach (D_AI_Action action in viableActionCopies)
             {
-                // Compare points
-                if(mCurrentAction.mPoints < action.mPoints)
+                if (mCurrentAction != null)
                 {
-                    Destroy(mCurrentAction.gameObject);
-                    mCurrentAction = action;
+                    // Compare points
+                    if (mCurrentAction.mPoints < action.mPoints)
+                    {
+                        Destroy(mCurrentAction.gameObject);
+                        mCurrentAction = action;
+                    }
+                    else
+                    {
+                        Destroy(action.gameObject);
+                    }
                 }
                 else
                 {
-                    Destroy(action.gameObject);
+                    mCurrentAction = action;
                 }
+                bDoing = true;
             }
-            else
-            {
-                mCurrentAction = action;
-            }
-            bDoing = true;
+        }
+        else
+        {
+            mCurrentAction = null;
         }
         
         

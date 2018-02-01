@@ -8,5 +8,6 @@ public interface D_IInventory
     void AddToInventory(D_Item item);
     void DropInventory();
 
+    List<D_Item> GetInventory();
     Transform GetTransform();
 }

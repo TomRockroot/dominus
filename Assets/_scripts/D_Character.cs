@@ -5,13 +5,19 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using D_StructsAndEnums;
 
-public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITargetable, IPointerClickHandler
+public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITargetable, D_ICrafter, IPointerClickHandler
 {
+    public string mName = "Some Guy";
+
     // Other
     public float mInteractionRange = 1.0f;
     public float mInteractionSpeed = 1.0f;
 
+    public int mIntegrity = 3;
+
     public D_Interaction mTargetedByInteraction;
+    [HideInInspector]
+    public EInteractionRestriction mRestrictionFlags = EInteractionRestriction.IR_World;
 
     public D_CharacterControl mController;
     public D_CharacterAnimator mAnimator;
@@ -40,7 +46,7 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
             mAttributeDict.Add(attributeDie, EDieType.DT_D4);
         }
 
-        Debug.Log("Populated AttributeDictionary for " + name + " with " + mAttributeDict.Count + " Attributes!");
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) { Debug.Log("Populated AttributeDictionary for " + name + " with " + mAttributeDict.Count + " Attributes!"); }
     }
 
     // Skills
@@ -62,7 +68,7 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
             mSkillDict.Add(skillDie, EDieType.DT_D4);
         }
 
-        Debug.Log("Populated SkillDictionary for " + name + " with " + mSkillDict.Count + " Skills!");
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) { Debug.Log("Populated SkillDictionary for " + name + " with " + mSkillDict.Count + " Skills!"); }
     }
 
     // Derived 
@@ -87,21 +93,63 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
     }
 
     // ============ Needs ============
-    
+    protected Dictionary<EMaslow, D_Maslow> mMaslowDict = new Dictionary<EMaslow, D_Maslow>();
+    public List<D_Maslow> mAllMaslows = new List<D_Maslow>();
+
+    public D_Maslow GetMaslow(EMaslow key)
+    {
+        D_Maslow value;
+        if(mMaslowDict.TryGetValue(key, out value))
+        {
+            return value;
+        }
+
+        return null;
+    }
+
+    public bool SetMaslow(D_Maslow maslowNew)
+    {
+        D_Maslow maslowOld = GetMaslow(maslowNew.mCategory);
+        if(maslowOld == null)
+        {
+            mMaslowDict.Remove(maslowNew.mCategory);
+            mMaslowDict.Add(maslowNew.mCategory, maslowNew);
+            mAllMaslows.Add(maslowNew);
+            return true;
+        }
+
+        if (maslowOld.GetHappiness(this) > maslowNew.GetHappiness(this, true))
+        {
+            return false;
+        }
+
+        mAllMaslows.Add(maslowOld);
+        maslowOld.FinishMaslow();
+
+        mMaslowDict.Remove(maslowNew.mCategory);
+        mMaslowDict.Add(maslowNew.mCategory, maslowNew);
+        mAllMaslows.Add(maslowNew);
+        return true;
+    }
 
     // ============ Equipment ============
     public List<D_Equipment> mEquipment = new List<D_Equipment>();
 
     // ============ Inventory ============
-    public List<D_Item> mInventory = new List<D_Item>();
+    protected List<D_Item> mInventory = new List<D_Item>();
+
+    public List<D_Item> GetInventory()
+    {
+        return mInventory;
+    }
 
     public void AddToInventory(D_Item item)
     {
         mInventory.Add(item);
 
-        if(D_UI_CharacterSheet.GetInstance().mInventoryUI != null)
+        if(this == (D_Character)D_UI_Manager.GetInstance().mInventoryUI.mCurrentPossessor)
         {
-            D_UI_CharacterSheet.GetInstance().mInventoryUI.UpdateUI(mInventory);
+            D_UI_Manager.GetInstance().mInventoryUI.AddItem(item);
         }
     }
 
@@ -110,6 +158,13 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         mInventory.Remove(item);
 
         item.GetTransform().parent = transform.parent;
+
+        if (D_UI_Manager.GetInstance() == null) return;
+
+        if (this == (D_Character) D_UI_Manager.GetInstance().mInventoryUI.mCurrentPossessor)
+        {
+            D_UI_Manager.GetInstance().mInventoryUI.RemoveItem(item);
+        }
     }
 
     public void DropInventory()
@@ -120,7 +175,55 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         }
     }
 
-    // Effects (incorporates Needs)
+    public void HideInventory()
+    {
+        if (this == D_GameMaster.GetInstance().GetCurrentController().mCharacter)
+        {
+            D_UI_Manager.GetInstance().OpenWindow(EUserInterface.UI_None, this);
+        }
+
+        foreach(D_Item item in mInventory)
+        {
+            item.Hide(true);
+        }
+    }
+
+    // Recipes
+    public List<D_Recipe> mKnownRecipes = new List<D_Recipe>();
+
+    public List<D_Recipe> GetRecipes()
+    {
+        return mKnownRecipes;
+    }
+
+    public List<D_Item> GetSimilarItems(D_Item blueprint)
+    {
+        List<D_Item> collection = new List<D_Item>();
+
+        foreach(D_Item item in GetInventory())
+        {
+            if(item.GetName() == blueprint.GetName())
+            {
+                collection.Add(item);
+                Debug.Log(" == " + blueprint.GetName() + " == WHOOP == " + item.GetName() + " == ");
+            }
+            else
+            {
+                Debug.Log(" vv " + blueprint.GetName() + " vv DERP vv " + item.GetName() + " vv ");
+            }
+        }
+
+        return collection;
+    }
+
+    public void Craft(D_Item result, D_Item first, D_Item second)
+    {
+
+    }
+
+    public D_IInventory AsInventory() { return this; }
+
+    // Effects
     public float mHappiness;
 
     public List<D_Effect> mEffects = new List<D_Effect>();
@@ -132,7 +235,10 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
         foreach (D_Effect effect in mEffects)
         {
-            sum += effect.GetPassiveAttribute(attribute);
+            if (effect.mEffectType == EEffectType.ET_Attribute)
+            {
+                sum += effect.GetPassiveAttribute(attribute);
+            }
         }
 
         return sum;
@@ -144,7 +250,10 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
         foreach(D_Effect effect in mEffects)
         {
-            sum += effect.GetPassiveSkill(skill);
+            if (effect.mEffectType == EEffectType.ET_Skill)
+            {
+                sum += effect.GetPassiveSkill(skill);
+            }
         }
 
         return sum;
@@ -156,10 +265,33 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
         foreach (D_Effect effect in mEffects)
         {
-            sum += effect.GetPassiveDerived(derived);
+            if (effect.mEffectType == EEffectType.ET_Derived)
+            {
+                sum += effect.GetPassiveDerived(derived);
+            }
         }
 
         return sum;
+    }
+
+    public int GetEffectMaslowBoni(EMaslow maslow)
+    {
+        int sum = 0;
+
+        foreach (D_Effect effect in mEffects)
+        {
+            if (effect.mEffectType == EEffectType.ET_Derived)
+            {
+                sum += effect.GetPassiveMaslow(maslow);
+            }
+        }
+
+        return sum;
+    }
+
+    public string GetName()
+    {
+        return mName;
     }
 
     void Start()
@@ -167,6 +299,7 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         RegisterWithGameMaster();
         PopulateAttributeDictionary();
         PopulateSkillDictionary();
+        HideInventory();
 
         mAnimator = GetComponent<D_CharacterAnimator>();
         mController = GetComponent<D_CharacterControl>();
@@ -174,12 +307,37 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
     void Update()
     {
-        foreach(D_Effect effect in mEffects)
+        foreach (D_Effect effect in mEffects)
         {
             effect.RunEffect(this);
         }
-    }
 
+
+        // Happiness Shit (Maslow etc)
+        float happiness = 0f;
+        bool foundMissing = false;
+        foreach (D_Maslow maslow in mAllMaslows)
+        {
+            if (maslow != null)
+            {
+                happiness += maslow.GetHappiness(this);
+            }
+            else
+            {
+                foundMissing = true;
+            }
+        }
+        if(foundMissing)
+        {
+            mAllMaslows.RemoveAll(D_Maslow => D_Maslow == null);
+        }
+        mHappiness = happiness;
+
+        if (this == D_GameMaster.GetInstance().GetCurrentController().mCharacter)
+        {
+            D_UI_Manager.GetInstance().mMaslowUI.SetHappiness(mHappiness);
+        }
+    }
     void OnDestroy()
     {
         UnregisterFromGameMaster();
@@ -214,6 +372,16 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         mTargetedByInteraction.ExecuteInteraction(cntl.mCharacter, this);
     }
 
+    public bool IsInteractionAllowed(D_CharacterControl cntl, EInteractionRestriction restriction)
+    {
+        return IsFlagged(restriction);
+    }
+
+    public bool IsFlagged(EInteractionRestriction flag)
+    {
+        return (mRestrictionFlags & flag) == flag;
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
         D_GameMaster.GetInstance().GetCurrentController().PrepareTarget(this);
@@ -229,9 +397,18 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         return mInteractionSpeed;
     }
 
+    public D_Maslow GetOnConsumptionMaslow() { return null; }
     public Transform GetTransform() { return transform; }
-    public int GetIntegrity() { return 0; }
-    public void SetIntegrity(int integrity) { }
+    public int GetIntegrity() { return mIntegrity; }
+    public int SetIntegrity(int integrity)
+    {
+        mIntegrity = integrity;
+        if (mIntegrity < 0)
+        {
+            Destroy(gameObject);
+        }
+        return mIntegrity;
+    }
 
     public void RegisterWithGameMaster()
     {
@@ -240,8 +417,7 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
     public void UnregisterFromGameMaster()
     {
-        D_GameMaster.GetInstance().UnregisterTargetable(this);
+        if(D_GameMaster.GetInstance() != null)
+            D_GameMaster.GetInstance().UnregisterTargetable(this);
     }
-
-    
 }

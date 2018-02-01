@@ -6,64 +6,49 @@ using D_StructsAndEnums;
 public class D_InteractionWoodCut : D_Interaction
 {
     public override void ExecuteInteraction(D_Character subject, D_ITargetable target)
-    {
-        mSubject = subject;
-        mTarget = target;
-        
+    {        
         if(D_GameMaster.GetInstance().GetCurrentController().mCharacter == subject)
         {
             D_UI_InteractionWheel.GetInstance().HideInteractions();
         }
-        StartCoroutine("WoodCutting");
+        StartCoroutine(WoodCutting(subject, target));
     }
 
-    IEnumerator WoodCutting()
+    IEnumerator WoodCutting(D_Character subject, D_ITargetable target)
     {
-        mSubject.mController.OverrideMovement(true);
+        yield return StartCoroutine(MoveToTarget(subject, target));
 
-        Vector3 ownerToTarget = mTarget.GetTransform().position - mSubject.GetTransform().position;
+        subject.mAnimator.SetAnimation(mSkillNeeded);
 
-       // Debug.Log("Owner To Target: " + ownerToTarget + " Owner: " + mSubject.GetTransform().name + " \nTarget: " + mTarget.GetTransform().name);
+        D_SoundMaster.GetInstance().PlaySound(ESoundCue.SC_WoodCut, -1);
 
-        while (ownerToTarget.magnitude > mSubject.GetInteractionRange() )
-        {
-            // IF BIGGER THEN ONE -> NORMALIZE ??
-            
-            mSubject.mController.mMoveVector = Vector3.Scale(ownerToTarget,  new Vector3(1f, 0f, 1f)).normalized;
-            yield return new WaitForEndOfFrame();
-
-            ownerToTarget = mTarget.GetTransform().position - mSubject.GetTransform().position;
-
-           // Debug.Log("Owner To Target: " + ownerToTarget + " Owner: " + mSubject.GetTransform().position + " \nTarget: " + mTarget.GetTransform().position);
-        }
-
-        mSubject.mController.mMoveVector = Vector3.zero;
-        // SET PLAYERCONTROL CLICK DESTINATION
-        (D_GameMaster.GetInstance().GetCurrentController() as D_PlayerControlClick).SetDestination(mSubject.GetTransform().position);
-        mSubject.mAnimator.SetAnimation(mSkillNeeded);
-
-        yield return new WaitForSeconds(mSubject.GetInteractionSpeed());
+        yield return new WaitForSeconds(subject.GetInteractionSpeed());
 
         int successes = 0;
-        int diceRoll = D_Dice.RollDie(mSubject.GetSkillDie(mSkillNeeded)) + mSubject.GetEffectSkillBoni(mSkillNeeded);
+        int diceRoll = D_Dice.RollDie(subject.GetSkillDie(mSkillNeeded)) + subject.GetEffectSkillBoni(mSkillNeeded);
 
-        while (diceRoll > mTarget.GetParry())
+        while (diceRoll > target.GetParry())
         {
             successes++;
             diceRoll -= 4;
         }
 
-        string messageDebug = mSubject.name + " had " + successes + " successes while doing " + mName + "\non " + mTarget.GetTransform().name + " with " + (mTarget.GetIntegrity() - successes) + " integrity left!";
-        string messageShort = successes + "! (" + (mTarget.GetIntegrity() - successes) + " to go)";
+        string messageDebug = subject.name + " had " + successes + " successes while doing " + mName + "\non " + target.GetTransform().name + " with " + (target.GetIntegrity() - successes) + " integrity left!";
+        string messageShort = successes + "! (" + (target.GetIntegrity() - successes) + " to go)";
         Debug.Log(messageDebug);
 
         // TRIGGER THIS BY OBSERVER EVENT SYSTEM!
-        D_UI_FloatTextCanvas.GetInstance().CreateFloatText(mTarget.GetTransform().position, messageShort, EFloatText.FT_Success, messageDebug);
-        mTarget.SetIntegrity(mTarget.GetIntegrity() - successes);
+        D_UI_FloatTextCanvas.GetInstance().CreateFloatText(target.GetTransform().position, messageShort, EFloatText.FT_Success, messageDebug);
+        
 
-        mSubject.mController.OverrideMovement(false);
-
-        Destroy(gameObject);
+        if (target.SetIntegrity(target.GetIntegrity() - successes) > 0)
+        {
+            StartCoroutine(WoodCutting(subject, target));
+        }
+        else
+        {
+            FinishInteraction(subject, target);
+        }
     }
 
 }

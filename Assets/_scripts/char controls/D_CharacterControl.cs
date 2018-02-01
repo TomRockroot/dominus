@@ -19,7 +19,7 @@ public class D_CharacterControl : MonoBehaviour {
 
     protected virtual void Initialize()
     {
-        Debug.Log("Initializing CharacterControl: " + name);
+        if (D_GameMaster.GetInstance().IsFlagged(D_StructsAndEnums.EDebugLevel.DL_General_Message)) { Debug.Log("Initializing CharacterControl: " + name); }
 
         mCharacter = GetComponent<D_Character>();
         if (mCharacter == null)
@@ -44,7 +44,7 @@ public class D_CharacterControl : MonoBehaviour {
         return Vector3.zero;
     }
 
-    public void OverrideMovement(bool val)
+    public virtual void OverrideMovement(bool val)
     {
         bMovementOverride = val;
     }

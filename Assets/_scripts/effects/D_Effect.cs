@@ -10,6 +10,7 @@ public class D_Effect : MonoBehaviour
     public ESkillDice       mSkillType;
     public EAttributeDice   mAttributeType;
     public EDerivedStat     mDerivedType;
+    public EMaslow          mMaslowType;
 
     public int mAmount;
 
@@ -72,6 +73,18 @@ public class D_Effect : MonoBehaviour
     public int GetPassiveDerived(EDerivedStat derivedType)
     {
         if (derivedType != mDerivedType)
+        {
+            return 0;
+        }
+        else
+        {
+            return mAmount;
+        }
+    }
+
+    public int GetPassiveMaslow(EMaslow maslow)
+    {
+        if (maslow != mMaslowType)
         {
             return 0;
         }

@@ -14,6 +14,11 @@ public class D_AI_Action : MonoBehaviour
 
     public virtual D_AI_Action Test(D_ITargetable target, D_AIControl owner)
     {
+        if(target.Equals(null))
+        {
+            Debug.LogError("HOW DID THIS HAPPEN?!");
+        }
+
         D_AI_Action copy = Instantiate(this);
         if (copy.mConnectedUtility != null)
         {

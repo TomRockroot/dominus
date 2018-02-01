@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using D_StructsAndEnums;
 
 public class D_PlayerControl : D_CharacterControl
 {
@@ -19,12 +20,15 @@ public class D_PlayerControl : D_CharacterControl
         return mPreparedTarget;
     }
 
-    public void PrepareTarget(D_ITargetable target)
+    public void PrepareTarget(D_ITargetable target, EInteractionRestriction restriction = EInteractionRestriction.IR_World)
     {
         D_UI_InteractionWheel.GetInstance().HideInteractions();
 
         mPreparedTarget = target;
 
-        D_UI_InteractionWheel.GetInstance().ShowInteractions(target);
+        if(D_UI_InteractionWheel.GetInstance().ShowInteractions(target, restriction))
+        {
+            Camera.main.GetComponent<D_CameraFollow>().SetCameraState(ECameraMode.CM_Focus, target.GetTransform());
+        }
     }
 }
