@@ -12,7 +12,7 @@ public class D_Interaction : MonoBehaviour
 
     public bool bImplemented = true;
 
-    [HideInInspector][SerializeField]
+    [SerializeField]
     public EInteractionRestriction mRestrictionFlags;
 
     public virtual void ExecuteInteraction(D_Character subject, D_ITargetable target)

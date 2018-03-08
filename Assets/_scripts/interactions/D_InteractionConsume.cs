@@ -12,7 +12,7 @@ public class D_InteractionConsume : D_Interaction
             D_UI_InteractionWheel.GetInstance().HideInteractions();
         }
 
-        StartCoroutine(Consume(subject, target));
+        subject.StartCoroutine(Consume(subject, target));
     }
 
     IEnumerator Consume(D_Character subject, D_ITargetable target)
