@@ -366,10 +366,14 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
             return;
         }
 
-        mTargetedByInteraction = Instantiate(interaction);
-        mTargetedByInteraction.transform.SetParent(cntl.transform);
+        mTargetedByInteraction = interaction;
 
         mTargetedByInteraction.ExecuteInteraction(cntl.mCharacter, this);
+    }
+
+    public void ClearTargetedByInteraction()
+    {
+        mTargetedByInteraction = null;
     }
 
     public bool IsInteractionAllowed(D_CharacterControl cntl, EInteractionRestriction restriction)

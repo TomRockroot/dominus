@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
-public class D_Interaction : MonoBehaviour
+public class D_Interaction : ScriptableObject
 {
     public string mName = "Some Interaction";
 
@@ -12,7 +12,7 @@ public class D_Interaction : MonoBehaviour
 
     public bool bImplemented = true;
 
-    [SerializeField]
+    [HideInInspector]
     public EInteractionRestriction mRestrictionFlags;
 
     public virtual void ExecuteInteraction(D_Character subject, D_ITargetable target)
@@ -28,7 +28,7 @@ public class D_Interaction : MonoBehaviour
     protected void FinishInteraction(D_Character subject, D_ITargetable target)
     {
         subject.mController.OverrideMovement(false);
-        Destroy(gameObject);
+        target.ClearTargetedByInteraction();
     }
 
     protected IEnumerator MoveToTarget(D_Character subject, D_ITargetable target)

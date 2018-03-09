@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
+[CreateAssetMenu(fileName = "I_OpenUI", menuName = "Interaction/Open UI", order = 5)]
 public class D_InteractionOpenUI : D_Interaction
 {
     public EUserInterface mWindow = EUserInterface.UI_None;
@@ -15,12 +16,12 @@ public class D_InteractionOpenUI : D_Interaction
             D_UI_InteractionWheel.GetInstance().HideInteractions();
         }
 
-        StartCoroutine(OpenUI(subject, target));
+        subject.StartCoroutine(OpenUI(subject, target));
     }
 
     IEnumerator OpenUI(D_Character subject, D_ITargetable target)
     {
-        yield return StartCoroutine(MoveToTarget(subject, target));
+        yield return subject.StartCoroutine(MoveToTarget(subject, target));
 
         subject.mAnimator.SetAnimation("OpenUI");
 

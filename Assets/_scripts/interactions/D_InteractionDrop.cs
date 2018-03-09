@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
+[CreateAssetMenu(fileName = "I_Drop", menuName = "Interaction/Drop", order = 2)]
 public class D_InteractionDrop : D_Interaction {
 
     public override void ExecuteInteraction(D_Character subject, D_ITargetable target)
@@ -12,12 +13,12 @@ public class D_InteractionDrop : D_Interaction {
             D_UI_InteractionWheel.GetInstance().HideInteractions();
         }
 
-        StartCoroutine(Drop(subject, target));
+        subject.StartCoroutine(Drop(subject, target));
     }
 
     IEnumerator Drop(D_Character subject, D_ITargetable target)
     {
-        yield return StartCoroutine(MoveToTarget(subject, target));
+        yield return subject.StartCoroutine(MoveToTarget(subject, target));
 
         subject.mAnimator.SetAnimation("Drop Item");
 

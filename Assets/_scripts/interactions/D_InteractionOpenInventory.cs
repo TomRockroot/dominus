@@ -12,12 +12,12 @@ public class D_InteractionOpenInventory : D_Interaction
             D_UI_InteractionWheel.GetInstance().HideInteractions();
         }
 
-        StartCoroutine(OpenInventory(subject, target));
+        subject.StartCoroutine(OpenInventory(subject, target));
     }
 
     IEnumerator OpenInventory(D_Character subject, D_ITargetable target)
     {
-        yield return StartCoroutine(MoveToTarget(subject, target));
+        yield return subject.StartCoroutine(MoveToTarget(subject, target));
 
         subject.mAnimator.SetAnimation("OpenInventory");
 

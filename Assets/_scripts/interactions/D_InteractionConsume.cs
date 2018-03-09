@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
+[CreateAssetMenu(fileName = "I_Consume", menuName = "Interaction/Consume", order = 1 )]
 public class D_InteractionConsume : D_Interaction
 {
     public override void ExecuteInteraction(D_Character subject, D_ITargetable target)
@@ -17,7 +18,7 @@ public class D_InteractionConsume : D_Interaction
 
     IEnumerator Consume(D_Character subject, D_ITargetable target)
     {
-        yield return StartCoroutine(MoveToTarget(subject, target));
+        yield return subject.StartCoroutine(MoveToTarget(subject, target));
 
         subject.mAnimator.SetAnimation(mSkillNeeded);
 

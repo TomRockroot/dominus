@@ -16,6 +16,7 @@ public interface D_ITargetable
     void Interact(D_CharacterControl cntl, D_Interaction interaction);
     List<D_Interaction> GetInteractions();
 
+    void ClearTargetedByInteraction();
     bool IsInteractionAllowed(D_CharacterControl cntl, EInteractionRestriction restriction);
     bool IsFlagged(EInteractionRestriction restriction);
 

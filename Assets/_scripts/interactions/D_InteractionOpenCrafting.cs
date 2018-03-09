@@ -12,12 +12,12 @@ public class D_InteractionOpenCrafting : D_Interaction
             D_UI_InteractionWheel.GetInstance().HideInteractions();
         }
 
-        StartCoroutine(OpenCrafting(subject, target));
+        subject.StartCoroutine(OpenCrafting(subject, target));
     }
 
     IEnumerator OpenCrafting(D_Character subject, D_ITargetable target)
     {
-        yield return StartCoroutine(MoveToTarget(subject, target));
+        yield return subject.StartCoroutine(MoveToTarget(subject, target));
 
         subject.mAnimator.SetAnimation("OpenCrafting");
 

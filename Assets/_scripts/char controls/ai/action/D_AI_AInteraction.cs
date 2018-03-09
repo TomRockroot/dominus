@@ -15,8 +15,14 @@ public class D_AI_AInteraction : D_AI_Action
             Debug.LogError("Why do I even Test something null? Where is this coming from?");
             return null;
         }
+        if(mPreparedInteraction.Equals(null))
+        {
+            Debug.LogError("There is no D_Interaction associated to " + name + " ...");
+            return null;
+        }
+
+
         bool sane = false;
-        
 
         // OMG SPAGGEDDI HERE I COME
         if(!target.IsInteractionAllowed(owner, mPreparedInteraction.mRestrictionFlags))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
+[CreateAssetMenu(fileName = "I_WoodCut", menuName = "Interaction/Wood Cut", order = 4)]
 public class D_InteractionWoodCut : D_Interaction
 {
     public override void ExecuteInteraction(D_Character subject, D_ITargetable target)
@@ -11,12 +12,12 @@ public class D_InteractionWoodCut : D_Interaction
         {
             D_UI_InteractionWheel.GetInstance().HideInteractions();
         }
-        StartCoroutine(WoodCutting(subject, target));
+        subject.StartCoroutine(WoodCutting(subject, target));
     }
 
     IEnumerator WoodCutting(D_Character subject, D_ITargetable target)
     {
-        yield return StartCoroutine(MoveToTarget(subject, target));
+        yield return subject.StartCoroutine(MoveToTarget(subject, target));
 
         subject.mAnimator.SetAnimation(mSkillNeeded);
 
@@ -43,7 +44,7 @@ public class D_InteractionWoodCut : D_Interaction
 
         if (target.SetIntegrity(target.GetIntegrity() - successes) > 0)
         {
-            StartCoroutine(WoodCutting(subject, target));
+            subject.StartCoroutine(WoodCutting(subject, target));
         }
         else
         {

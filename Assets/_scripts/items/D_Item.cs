@@ -64,10 +64,14 @@ public class D_Item : MonoBehaviour, D_ITargetable, IPointerClickHandler
         }
 
 
-        mTargetedByInteraction = Instantiate(interaction);
-        mTargetedByInteraction.transform.SetParent(cntl.transform);
+        mTargetedByInteraction = interaction;
 
         mTargetedByInteraction.ExecuteInteraction(cntl.mCharacter, this);
+    }
+
+    public void ClearTargetedByInteraction()
+    {
+        mTargetedByInteraction = null;
     }
 
     public bool IsInteractionAllowed(D_CharacterControl cntl, EInteractionRestriction restriction)
