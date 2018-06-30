@@ -24,7 +24,10 @@ namespace D_StructsAndEnums
     public enum EInteractionRestriction
     {
         IR_World = (1 << 0),
-        IR_Inventory = (1 << 1)
+        IR_Inventory = (1 << 1),
+        IR_Self = (1 << 2),
+        IR_Dominator = (1 << 2)
+           
     }
 
     public enum EEffectType
@@ -151,7 +154,19 @@ namespace D_StructsAndEnums
 
         DL_UI_Message = (1 << 21),
         DL_UI_Warning = (1 << 22),
-        DL_UI_Error   = (1 << 23)
+        DL_UI_Error   = (1 << 23),
+
+        DL_Camera_Message = (1 << 24),
+        DL_Camera_Warning = (1 << 25),
+        DL_Camera_Error   = (1 << 26),
+
+        DL_SOS_Message = (1 << 27),
+        DL_SOS_Warning = (1 << 28),
+        DL_SOS_Error   = (1 << 29),
+
+        DL_Path_Message = (1 << 30),
+        DL_Path_Warning = (1 << 31),
+        DL_Path_Error = (1 << 32)
     }
 
     public enum EUserInterface

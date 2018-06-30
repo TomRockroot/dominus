@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
-public class D_PlayerControl : D_CharacterControl
+public class D_PlayerControl : D_CharacterControlPath
 {
     protected D_ITargetable mPreparedTarget;
     

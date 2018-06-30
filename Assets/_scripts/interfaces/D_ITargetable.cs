@@ -6,6 +6,9 @@ using D_StructsAndEnums;
 public interface D_ITargetable
 {
     Transform GetTransform();
+    A_Node GetNode();
+    void SetNode(A_Node node );
+    ENodeStatus GetOccupyType();
 
     string GetName();
 

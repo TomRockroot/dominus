@@ -3,85 +3,121 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
-public class A_Pathfinder : MonoBehaviour
+[CreateAssetMenu(fileName = "A_Pathfinder", menuName = "Pathfinder", order = 66)]
+public class A_Pathfinder : ScriptableObject
 {
-    public Terrain mTerrain;
-    public float mNodeDistance;
+    private static A_Pathfinder PATHFINDER;
 
-    public A_Indicator mNodeIndicator;
-    List<A_Indicator> mNodeIndicators = new List<A_Indicator>();
-
-    public A_Node mStart;
-    public A_Node mGoal;
-
-    public A_Walker mWalker;
-
-    public int mMaxLoops = 2000;
-
-    A_Grid mGrid;
-
-    public void SetStartNode(A_Node node)
+    public static A_Pathfinder GetInstance()
     {
-        if (mStart != null || mStart == node)
+        if(PATHFINDER == null)
         {
-            mStart.mIndicator.SetMode(ENodeManipulation.NM_Normal); // <<--- THIS COULD LEAD TO ERRORS ALONG THE LINE ( need to recreate old status ) 
-        }
+            A_Pathfinder[] pathfinders = Resources.FindObjectsOfTypeAll<A_Pathfinder>();   // wont work at Runtime: FindObjectOfType<A_Pathfinder>();
+            if (pathfinders.Length < 1)
+            {
+                Debug.LogError("No Pathfinder found!");
+                Debug.Break();
+            }
+            else if (pathfinders.Length > 1)
+            {
+                Debug.LogError("More than one Pathfinder found!");
+                Debug.Break();
+            }
+            else
+            {
+                PATHFINDER = pathfinders[0];
+            }
 
-        mStart = node;
+        }
+        if(PATHFINDER == null)
+        {
+            PATHFINDER = CreateInstance<A_Pathfinder>();
+        }
+        return PATHFINDER;
     }
 
-    public void SetGoalNode(A_Node node)
+    public void TryPath(A_Grid grid, D_CharacterControlPath control, Vector3 targetPos, int maxLoops = 2000)
     {
-        if (mGoal != null || mGoal == node)
-        {
-            mGoal.mIndicator.SetMode(ENodeManipulation.NM_Normal);
-        }
+        A_Node start = grid.GetNodeByWorldPosition(control.transform.position, true);
+        A_Node goal  = grid.GetNodeByWorldPosition(targetPos, true);
 
-        mGoal = node;
-    }
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: Start(" + start.x + "/" + start.y + ") Goal("+goal.x+"/"+goal.y+")");
 
-    public void FindPathButton()
-    {
-        if(mStart != null && mGoal != null)
+        control.StopCoroutine("FollowWayponts"); // <-- this does not happen, but why?
+
+        A_Waypoint path = FindPath(grid, start, goal, control, maxLoops);
+        if (path != null)
         {
-            StartCoroutine(FindPath(mGrid, mStart, mGoal));
+            control.WalkPath(path);
         }
     }
 
-	public IEnumerator FindPath(A_Grid grid, A_Node start, A_Node goal)
+    // MUSS DAS WIRKLICH EINE COROUTINE SEIN?!
+	public A_Waypoint FindPath(A_Grid grid, A_Node start, A_Node goal, D_CharacterControlPath control, int maxLoops)
     {
-        Debug.Log("TRYING TO FIND PATH FROM (" + start.x + "/" + start.y + ") TO (" + goal.x + "/" + goal.y + ")");
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: TRYING TO FIND PATH FROM (" + start.x + "/" + start.y + ") TO (" + goal.x + "/" + goal.y + ")");
         List<A_Waypoint> openList = new List<A_Waypoint>();
         List<A_Waypoint> closedList = new List<A_Waypoint>();
         List<A_Node> neighbourNodes;
+
+        A_Waypoint waypointOld;
+        A_Waypoint waypointNew;
 
         A_Waypoint currentWaypoint = new A_Waypoint(start, null, grid.GetDistance(start, goal), false);
         openList.Add(currentWaypoint);
 
         int loopCount = 0;
 
-        while(openList[0].mNode != goal && openList.Count > 0 && loopCount < mMaxLoops)
+        while(openList[0].mNode != goal && openList.Count > 0 && loopCount < maxLoops)
         {
-            Debug.Log("Looping: " + loopCount);
+            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: Looping: " + loopCount);
             loopCount++;
-            yield return new WaitForEndOfFrame();
+           // yield return new WaitForEndOfFrame();
             currentWaypoint = openList[0];
-            currentWaypoint.mNode.mIndicator.GetComponent<Renderer>().material.color = Color.black;
-            neighbourNodes = mGrid.GetNeighboursStraight(currentWaypoint.mNode);
+           // currentWaypoint.mNode.mIndicator.GetComponent<Renderer>().material.color = Color.black;
+            neighbourNodes = grid.GetNeighboursStraight(currentWaypoint.mNode);
             foreach (A_Node node in neighbourNodes)
             {
-                if (!ContainsWaypointWithNode(openList, node) && !ContainsWaypointWithNode(closedList, node))
+                if(GetWaypointWithNode(closedList, node) == null)
                 {
-                    openList.Add(new A_Waypoint(node, currentWaypoint, grid.GetDistance(node, goal), false));
+                    waypointOld = GetWaypointWithNode(openList, node);
+                    if (waypointOld == null)
+                    {
+                        openList.Add(new A_Waypoint(node, currentWaypoint, grid.GetDistance(node, goal), false));
+                    }
+                    else
+                    {
+                        // If we found a path to a node that is essentially faster than the old path, use that new one instead
+                        waypointNew = new A_Waypoint(node, currentWaypoint, grid.GetDistance(node, goal), false);
+                        if(waypointOld.mCombined < waypointNew.mCombined)
+                        {
+                            openList.Remove(waypointOld);
+                            openList.Add(waypointNew);
+                        }
+                    }
                 }
             }
 
-            neighbourNodes = mGrid.GetNeighboursDiagnoal(currentWaypoint.mNode);
+            neighbourNodes = grid.GetNeighboursDiagnoal(currentWaypoint.mNode);
             foreach (A_Node node in neighbourNodes)
             {
-                if (!ContainsWaypointWithNode(openList, node) && !ContainsWaypointWithNode(closedList, node))
+                if (GetWaypointWithNode(closedList, node) == null)
                 {
-                    openList.Add(new A_Waypoint(node, currentWaypoint, grid.GetDistance(node, goal), true));
+                    waypointOld = GetWaypointWithNode(openList, node);
+                    if (waypointOld == null)
+                    {
+                        openList.Add(new A_Waypoint(node, currentWaypoint, grid.GetDistance(node, goal), true));
+                    }
+                    else
+                    {
+                        // If we found a path to a node that is essentially faster than the old path, use that new one instead
+                        waypointNew = new A_Waypoint(node, currentWaypoint, grid.GetDistance(node, goal), true);
+                        if (waypointOld.mCombined < waypointNew.mCombined)
+                        {
+                            openList.Remove(waypointOld);
+                            openList.Add(waypointNew);
+                        }
+                    }
                 }
             }
 
@@ -99,80 +135,31 @@ public class A_Pathfinder : MonoBehaviour
 
         if(openList[0].mNode == goal)
         {
-            Debug.Log("Success!");
+            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: Success!");
 
-            if(mWalker != null)
-            {
-                mWalker.WalkPath(openList[0]);
-            }
+            return openList[0];
         }
 
-        Debug.Log("Done!");
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.LogWarning("Pathfinder: Failure!");
         // Finalize when currentWaypoint is goalNode
         // Abort if openList is empty
+        return null;
     }
 
-    bool ContainsWaypointWithNode(List<A_Waypoint> openList, A_Node node)
+    A_Waypoint GetWaypointWithNode(List<A_Waypoint> openList, A_Node node)
     {
         foreach(A_Waypoint waypoint in openList)
         {
             if(waypoint.mNode == node)
             {
-                return true;
+                return waypoint;
             }
         }
-        return false;
+        return null;
     }
 
     static int SortByScore(A_Waypoint wp1, A_Waypoint wp2)
     {
         return wp1.mCombined.CompareTo(wp2.mCombined);
-    }
-
-    public void CreateGrid()
-    { 
-        if(mNodeDistance <= 0f || mTerrain == null)
-        {
-            Debug.LogError("A* Pathfinder - Members on " + name + " not set up properly!");
-            return;
-        }
-
-        mGrid = new A_Grid(mNodeDistance, mTerrain);
-        StartCoroutine(ShowLastDeltaTime());
-        Debug.Log("So lange hats gedauert: " + Time.deltaTime);
-    }
-
-    IEnumerator ShowLastDeltaTime()
-    {
-        yield return new WaitForEndOfFrame();
-        
-    }
-
-    public void ShowGrid()
-    {
-        HideGrid();
-
-        A_Indicator indicator;
-
-        foreach ( A_Node node in mGrid.mNodes )
-        {
-            indicator = Instantiate(mNodeIndicator, mTerrain.transform);
-            indicator.transform.localPosition = new Vector3(node.x * mNodeDistance, mTerrain.SampleHeight(mTerrain.transform.position + new Vector3(node.x * mNodeDistance, 0, node.y * mNodeDistance)), node.y * mNodeDistance);
-
-            // ===== IS THIS GOOD ? =====
-            indicator.mNode = node;
-            node.mIndicator = indicator;
-            // ======  OR BAD ???  ======
-
-            mNodeIndicators.Add(indicator);
-        }
-    }
-
-    public void HideGrid()
-    {
-        foreach(A_Indicator indicator in mNodeIndicators)
-        {
-            Destroy(indicator.gameObject);
-        }
     }
 }

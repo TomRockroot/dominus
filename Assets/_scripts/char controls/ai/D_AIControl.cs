@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class D_AIControl : D_CharacterControl
+public class D_AIControl : D_CharacterControlPath
 {
     public int mMaxThinkCyclesPerFrame = 3;
     public int mMaxThinkCyclesTotal = 100;

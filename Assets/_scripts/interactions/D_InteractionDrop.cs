@@ -29,7 +29,7 @@ public class D_InteractionDrop : D_Interaction {
         {
             D_Item item = target as D_Item;
 
-            item.SwitchSelfInventory(item.mStashedInInventory, D_GameMaster.GetInstance());
+            item.SwitchSelfInventory(item.GetStashedInInventory(), D_GameMaster.GetInstance());
             item.Hide(false);
             item.transform.position = subject.transform.position;
             item.ClearFlags();

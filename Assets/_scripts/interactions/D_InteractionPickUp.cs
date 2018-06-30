@@ -26,7 +26,7 @@ public class D_InteractionPickUp : D_Interaction {
         if (target is D_Item)
         {
             D_Item item = (target as D_Item);
-            item.SwitchSelfInventory(item.mStashedInInventory, subject);
+            item.SwitchSelfInventory(item.GetStashedInInventory(), subject);
             item.ClearFlags();
             item.SetFlag(EInteractionRestriction.IR_Inventory);
 

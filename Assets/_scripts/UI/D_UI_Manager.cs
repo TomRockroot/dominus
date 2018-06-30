@@ -21,7 +21,7 @@ public class D_UI_Manager : MonoBehaviour
 
     public void OpenWindow(EUserInterface state, D_ITargetable target)
     {
-        Debug.Log("UI: " + mState + " ~> " + state);
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_UI_Message)) Debug.Log("UI: " + mState + " ~> " + state);
 
         mCultureUI.Close(target);
         mInventoryUI.Close(target);

@@ -16,7 +16,7 @@ public class D_UI_InventorySlot : MonoBehaviour, IPointerClickHandler
     public void AssignItem(D_Item item)
     {
         mContainedItem = item;
-        mItemImage.sprite = item.mInventorySprite;
+        mItemImage.sprite = item.GetData().mInventorySprite;
         mItemImage.color = Color.white;
     }
 

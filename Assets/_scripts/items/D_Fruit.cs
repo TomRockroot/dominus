@@ -7,11 +7,7 @@ public class D_Fruit : D_Item
     protected Color   mOriginalColor;
     protected Vector3 mOriginalSize;
 
-    public Color mRipeColor = Color.green;
-
-    [Range(0f, 1f)]
-    public float mGrowthRate    = 0.1f;
-    public float mSize          = 0.0f;
+    protected float mSize = 0.0f;
 
     void Awake()
     {
@@ -19,13 +15,13 @@ public class D_Fruit : D_Item
         mOriginalSize = transform.localScale;
     }
 
-    public float Grow(float multiplyer = 1f)
+    public float Grow(D_GrowthData growthData, float multiplyer = 1f)
     {
         if (mSize < 1f)
         {
-            mSize += mGrowthRate * multiplyer * Time.deltaTime;
+            mSize += growthData.mGrowthRate * multiplyer * Time.deltaTime;
             transform.localScale = mOriginalSize * Mathf.Clamp(mSize, 0f, 1f);
-            GetComponent<Renderer>().material.color = Color.Lerp(mOriginalColor, mRipeColor, Mathf.Clamp(mSize, 0f, 1f));
+            GetComponent<Renderer>().material.color = Color.Lerp(mOriginalColor, growthData.mRipeColor, Mathf.Clamp(mSize, 0f, 1f));
         }
 
         return mSize;

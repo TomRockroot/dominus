@@ -4,8 +4,32 @@ using UnityEngine;
 using D_StructsAndEnums;
 using System;
 
-public class D_GameMaster : MonoBehaviour, D_IInventory
+[CreateAssetMenu(fileName = "D_GameMaster", menuName = "Singletons/Game Master", order = 0)]
+public class D_GameMaster : ScriptableObject, D_IInventory
 {
+    public D_Character pCharacter;
+    public D_Structure pStructure;
+    public D_Item pItem;
+
+    public D_Tree pTree;
+    public D_Fruit pFruit;
+
+    public List<D_LevelData> mAllLevels = new List<D_LevelData>();
+    private D_LevelData mCurrentLevel;
+
+    public D_LevelData GetCurrentLevel()
+    {
+        if(mCurrentLevel == null)
+        {
+            foreach(D_LevelData level in mAllLevels)
+            {
+                mCurrentLevel = level;
+                break;
+            }
+        }
+        return mCurrentLevel;
+    }
+
     [HideInInspector]
     public EDebugLevel mDebugFlags = 0;
 
@@ -41,18 +65,18 @@ public class D_GameMaster : MonoBehaviour, D_IInventory
     {
         if(mAllTargetables.Contains(targetable))
         {
-            Debug.LogError("Tried to add ITargetable " + targetable.GetTransform().name + " twice!\nDENIED!");
+            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Error)) Debug.LogError("General: Tried to add ITargetable " + targetable.GetTransform().name + " twice!\nDENIED!");
             return;
         }
         mAllTargetables.Add(targetable);
-      //  Debug.LogWarning("AVAILABLE TARGETS: " + mAllTargetables.Count);
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Warning)) Debug.LogWarning("General: AVAILABLE TARGETS: " + mAllTargetables.Count);
     }
 
     public void UnregisterTargetable(D_ITargetable targetable)
     {
         if (!mAllTargetables.Contains(targetable))
         {
-            Debug.LogError("Tried to remove ITargetable " + targetable.GetTransform().name + " when it's not there anymore!\nDENIED!");
+            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Error)) Debug.LogError("General: Tried to remove ITargetable " + targetable.GetTransform().name + " when it's not there anymore!\nDENIED!");
             return;
         }
         mAllTargetables.Remove(targetable);
@@ -65,16 +89,72 @@ public class D_GameMaster : MonoBehaviour, D_IInventory
         return mAllTargetables;
     }
 
-    // ==== SINGLETON SHIT ====
+    // ==== SINGLETON SHIT ====     https://youtu.be/6vmRwLYWNRo?t=30m22s 
     private static D_GameMaster GAME_MASTER;
 
-    public static D_GameMaster GetInstance()
+    public static D_GameMaster GetInstance() 
     {
         if(GAME_MASTER == null)
         {
-            GAME_MASTER = FindObjectOfType<D_GameMaster>();
+            Debug.LogWarning("GameMaster: was null!");
+            D_GameMaster[] gameMasters = Resources.FindObjectsOfTypeAll<D_GameMaster>();
+
+            // if something is wrong, it is because there are more or less than one GameMaster available
+            if(gameMasters.Length > 1) 
+            {
+                Debug.LogWarning("GameMaster: More than one found!");
+                for(int i = 0; i < gameMasters.Length; i++)
+                {
+                    Debug.LogWarning(i + ": " + gameMasters[i]);
+                }
+                Debug.Break();
+            }
+            if(gameMasters.Length < 1)
+            {
+                Debug.LogWarning("GameMaster: Not found!");
+                Debug.Break();
+            }
+
+            GAME_MASTER = gameMasters[0];      // FindObjectOfType<D_GameMaster>();
         }
         return GAME_MASTER; 
+    }
+
+    public D_Structure CreateStructure(D_StructureData data)
+    {
+        D_Structure structure = Instantiate(pStructure);
+        structure.SetData(data);
+        return structure;
+    }
+
+    public D_LevelData CreateLevel(string id)
+    {
+        Debug.Log("GameMaster: Creating a Level_" + id + " !");
+
+        GameObject go = new GameObject();
+        D_LevelData levelData = go.AddComponent<D_LevelData>();
+        levelData.mID = id;
+        go.name = "Level_" + id;
+
+        mAllLevels.Add(levelData);
+
+        return levelData;
+    }
+
+    public void SaveLevel(D_LevelData levelData)
+    {
+        SOS_Level.Save(levelData);
+    }
+
+    public D_LevelData LoadLevel(string id, D_LevelData levelData = null)
+    {
+        if(levelData == null)
+        {
+            levelData = CreateLevel(id);
+        }
+        SOS_Level.Load(id, levelData);
+
+        return levelData;
     }
 
     public void RemoveFromInventory(D_Item item)
@@ -99,6 +179,7 @@ public class D_GameMaster : MonoBehaviour, D_IInventory
 
     public Transform GetTransform()
     {
-        return transform;
+        Debug.Break();
+        return null; // DONT TOUCH MA SPAGETT
     }
 }

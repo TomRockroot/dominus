@@ -9,10 +9,15 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 {
     public string mName = "Some Guy";
 
+    // Grid
+    protected A_Node mNode;
+    public ENodeStatus mOccupyType = ENodeStatus.NS_Occupied;
+
     // Other
     public float mInteractionRange = 1.0f;
     public float mInteractionSpeed = 1.0f;
 
+    public int mCurrentIntegrity;
     public int mIntegrity = 3;
 
     public D_Interaction mTargetedByInteraction;
@@ -46,11 +51,11 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
             mAttributeDict.Add(attributeDie, EDieType.DT_D4);
         }
 
-        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) { Debug.Log("Populated AttributeDictionary for " + name + " with " + mAttributeDict.Count + " Attributes!"); }
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Character_Message)) { Debug.Log("Character: Populated AttributeDictionary for " + name + " with " + mAttributeDict.Count + " Attributes!"); }
     }
 
     // Skills
-    public EDieType GetSkillDie(ESkillDice skill)
+    public EDieType GetSkillDie(ESkillDice skill) // <-- ScriptableObject Extendable Enum as Dictionary Key
     {
         EDieType value;
         if( mSkillDict.TryGetValue(skill, out value) )
@@ -68,7 +73,7 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
             mSkillDict.Add(skillDie, EDieType.DT_D4);
         }
 
-        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) { Debug.Log("Populated SkillDictionary for " + name + " with " + mSkillDict.Count + " Skills!"); }
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Character_Message)) { Debug.Log("Character: Populated SkillDictionary for " + name + " with " + mSkillDict.Count + " Skills!"); }
     }
 
     // Derived 
@@ -301,8 +306,11 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
         PopulateSkillDictionary();
         HideInventory();
 
+        mCurrentIntegrity = mIntegrity;
         mAnimator = GetComponent<D_CharacterAnimator>();
         mController = GetComponent<D_CharacterControl>();
+
+        A_Grid.SnapToGrid(this, D_GameMaster.GetInstance().GetCurrentLevel().mGrid);
     }
 
     void Update()
@@ -403,15 +411,42 @@ public class D_Character : MonoBehaviour, D_IEffectable, D_IInventory, D_ITarget
 
     public D_Maslow GetOnConsumptionMaslow() { return null; }
     public Transform GetTransform() { return transform; }
+
+    public A_Node GetNode()
+    {
+        if (mNode != null)
+        {
+            return mNode;
+        }
+        else
+        {
+            Debug.LogError("ALLE MITTELFINGER HOCH!");
+            // Get some node
+            return mNode;
+        }
+    }
+    public void SetNode(A_Node node)
+    {
+        if (mNode != null)
+        {
+            mNode.RemoveOccupant(this);
+        }
+
+        node.AddOccupant(this);
+
+        mNode = node;
+    } 
+    public ENodeStatus GetOccupyType() { return mOccupyType; }
+
     public int GetIntegrity() { return mIntegrity; }
     public int SetIntegrity(int integrity)
     {
-        mIntegrity = integrity;
-        if (mIntegrity < 0)
+        mCurrentIntegrity = integrity;
+        if (mCurrentIntegrity < 0)
         {
             Destroy(gameObject);
         }
-        return mIntegrity;
+        return mCurrentIntegrity;
     }
 
     public void RegisterWithGameMaster()

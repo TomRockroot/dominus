@@ -8,7 +8,7 @@ using D_StructsAndEnums;
 public class A_Indicator : MonoBehaviour,  IPointerEnterHandler, IPointerDownHandler
 {
     private A_NodeManipulator mManipulator;
-    private A_Pathfinder mPathfinder;
+   // private A_Pathfinder mPathfinder;
     public  A_Node mNode;
 
     public Color mStartColor = Color.blue;
@@ -61,13 +61,13 @@ public class A_Indicator : MonoBehaviour,  IPointerEnterHandler, IPointerDownHan
         {
             case ENodeManipulation.NM_Start:
                 GetComponent<Renderer>().material.color = mStartColor;
-                mPathfinder.SetStartNode(mNode);
+            //    mPathfinder.SetStartNode(mNode);
 
                 break;
 
             case ENodeManipulation.NM_Goal:
                 GetComponent<Renderer>().material.color = mGoalColor;
-                mPathfinder.SetGoalNode(mNode);
+             //   mPathfinder.SetGoalNode(mNode);
 
                 break;
 
@@ -98,7 +98,7 @@ public class A_Indicator : MonoBehaviour,  IPointerEnterHandler, IPointerDownHan
     void Start ()
     {
         mManipulator = mNode.mGrid.mTerrain.GetComponent<A_NodeManipulator>();
-        mPathfinder  = mNode.mGrid.mTerrain.GetComponent<A_Pathfinder>();
+     //   mPathfinder  = mNode.mGrid.mTerrain.GetComponent<A_Pathfinder>();
         SetMode(ENodeManipulation.NM_Normal);
 	}
 }

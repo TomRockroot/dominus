@@ -19,7 +19,7 @@ public class D_CharacterControl : MonoBehaviour {
 
     protected virtual void Initialize()
     {
-        if (D_GameMaster.GetInstance().IsFlagged(D_StructsAndEnums.EDebugLevel.DL_General_Message)) { Debug.Log("Initializing CharacterControl: " + name); }
+        if (D_GameMaster.GetInstance().IsFlagged(D_StructsAndEnums.EDebugLevel.DL_Character_Message)) { Debug.Log("Character: Initializing CharacterControl: " + name); }
 
         mCharacter = GetComponent<D_Character>();
         if (mCharacter == null)
@@ -36,6 +36,7 @@ public class D_CharacterControl : MonoBehaviour {
         if (mMoveVector.magnitude > 0.01f)
         {
             transform.position += mMoveVector * mCharacter.GetPace() * Time.deltaTime * GAME_MASTER.GetGameMoveSpeed();
+            // ToDo: Sample Terrain Height
         }
 	}
 
@@ -48,4 +49,6 @@ public class D_CharacterControl : MonoBehaviour {
     {
         bMovementOverride = val;
     }
+
+    
 }

@@ -38,7 +38,7 @@ public class D_UI_CraftSlot : MonoBehaviour
         }
 
         mItemName.text = mCurrentPrefab.GetName();
-        mItemImage.sprite = mCurrentPrefab.mInventorySprite;
+        mItemImage.sprite = mCurrentPrefab.GetData().mInventorySprite;
 
         mSimilarItems = crafter.GetSimilarItems(mCurrentPrefab);
         available = mSimilarItems.Count;
@@ -62,7 +62,7 @@ public class D_UI_CraftSlot : MonoBehaviour
         amount = recipe.mAmountYield;
 
         mItemName.text = mCurrentPrefab.GetName();
-        mItemImage.sprite = mCurrentPrefab.mInventorySprite;
+        mItemImage.sprite = mCurrentPrefab.GetData().mInventorySprite;
         
         mNumbers.text = amount + "++ (" + crafter.GetSimilarItems(mCurrentPrefab).Count + ")";
 

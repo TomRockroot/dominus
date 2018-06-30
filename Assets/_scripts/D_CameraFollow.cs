@@ -25,7 +25,7 @@ public class D_CameraFollow : MonoBehaviour {
 
     public void SetCameraState(ECameraMode state, Transform target)
     {
-        Debug.Log("Camera: " + mState + " ~> " + state);
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Camera_Message)) Debug.Log("Camera: " + mState + " ~> " + state);
 
         if (target != null)
         {

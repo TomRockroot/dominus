@@ -5,10 +5,16 @@ using UnityEngine;
 
 public class D_Tree : D_Structure, D_IInventory, D_IMineable
 {
-    public float mFruitPosUp = 0.2f;
-    public float mFruitPosDown = 0.55f;
-    public float mFruitLeft = -0.5f;
-    public float mFruitRight = 0.5f;
+    [SerializeField]
+    protected D_GrowthData mGrowthData;
+    
+    public D_GrowthData GetGrowthData()
+    {
+        return mGrowthData;
+    }
+
+    private float mFruitSpawnTimer;
+    private int mNumberOfSpawnedFruitsTotal = 0;
 
     public override int SetIntegrity(int integrity)
     {
@@ -21,7 +27,7 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
     }
 
     // == Inventory ==
-    public List<D_Item> mFruits = new List<D_Item>();
+    private List<D_Item> mFruits = new List<D_Item>();
     public List<D_Item> GetInventory() { return mFruits; }
     public void AddToInventory(D_Item item)
     {
@@ -41,20 +47,12 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
         }
     }
 
-    public GameObject    pFruitPrefab;
-    public GameObject pResourcePrefab;
-
-    public int mFruitsPerHour = 60;
-    public int mMaxFruits = 4;
-
-    public float mFruitSpawnTimer;
-
-    public int mNumberOfSpawnedFruitsTotal = 0;
-
     public D_Item ProduceResource()
     {
-        GameObject itemGO = Instantiate(pResourcePrefab, transform.position + Vector3.up * 0.01f, transform.rotation);
+        GameObject itemGO = Instantiate(D_GameMaster.GetInstance().pItem.gameObject, transform.position + Vector3.up * 0.01f, transform.rotation);
+     // 
         D_Item item = itemGO.GetComponent<D_Item>();
+        item.SetData(GetGrowthData().pResourceData);
         item.ClearFlags();
         item.SetFlag(D_StructsAndEnums.EInteractionRestriction.IR_World);
 
@@ -64,26 +62,31 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
     void Update()
     {
         // == Check for Fruit to spawn ==
-        if (mFruits.Count < mMaxFruits)
+        if (mFruits.Count < GetGrowthData().mMaxFruits)
         {
-            mFruitSpawnTimer -= Time.deltaTime;
+           mFruitSpawnTimer -= Time.deltaTime;
 
             if (mFruitSpawnTimer < 0f)
             {
                 // spawn Fruit
-                GameObject fruit = Instantiate(pFruitPrefab, transform);
-                fruit.name = fruit.name + " " + mNumberOfSpawnedFruitsTotal;
+                GameObject fruitGO = Instantiate(D_GameMaster.GetInstance().pFruit.gameObject, transform);
+                D_Fruit fruit = fruitGO.GetComponent<D_Fruit>();
+                fruit.SetData(GetGrowthData().pFruitData);
+                // !!!!!!!!!!!!!!!!
+
+
+                fruit.name = fruit.GetData().mName + " " + mNumberOfSpawnedFruitsTotal;
                 mNumberOfSpawnedFruitsTotal++;
 
                 fruit.transform.localEulerAngles = Vector3.zero;
-                fruit.transform.localPosition = Vector3.forward * UnityEngine.Random.Range(-0.3f, -0.01f) + Vector3.right * UnityEngine.Random.Range(mFruitLeft, mFruitRight) + Vector3.up * UnityEngine.Random.Range(mFruitPosDown, mFruitPosUp);
+                fruit.transform.localPosition = Vector3.forward * UnityEngine.Random.Range(-0.3f, -0.01f) + Vector3.right * UnityEngine.Random.Range(GetGrowthData().mFruitLeft, GetGrowthData().mFruitRight) + Vector3.up * UnityEngine.Random.Range(GetGrowthData().mFruitPosDown, GetGrowthData().mFruitPosUp);
                 
-                fruit.GetComponent<D_Fruit>().AddSelfToInventory(this, false);
-                fruit.GetComponent<D_Fruit>().ClearFlags();
-                fruit.GetComponent<D_Fruit>().SetFlag(D_StructsAndEnums.EInteractionRestriction.IR_World);
+                fruit.AddSelfToInventory(this, false);
+                fruit.ClearFlags();
+                fruit.SetFlag(D_StructsAndEnums.EInteractionRestriction.IR_World);
 
                 // reset timer
-                mFruitSpawnTimer = 3600f / mFruitsPerHour;
+                mFruitSpawnTimer = 3600f / GetGrowthData().mFruitsPerHour;
             }
 
 
@@ -92,7 +95,7 @@ public class D_Tree : D_Structure, D_IInventory, D_IMineable
         // == Grow all existing fruit ==
         foreach (D_Fruit fruit in mFruits)
         {
-            fruit.Grow();
+            fruit.Grow(GetGrowthData());
         }
     }
 }

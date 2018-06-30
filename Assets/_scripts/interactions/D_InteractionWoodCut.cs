@@ -36,7 +36,7 @@ public class D_InteractionWoodCut : D_Interaction
 
         string messageDebug = subject.name + " had " + successes + " successes while doing " + mName + "\non " + target.GetTransform().name + " with " + (target.GetIntegrity() - successes) + " integrity left!";
         string messageShort = successes + "! (" + (target.GetIntegrity() - successes) + " to go)";
-        Debug.Log(messageDebug);
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Interaction_Message)) Debug.Log(messageDebug);
 
         // TRIGGER THIS BY OBSERVER EVENT SYSTEM!
         D_UI_FloatTextCanvas.GetInstance().CreateFloatText(target.GetTransform().position, messageShort, EFloatText.FT_Success, messageDebug);

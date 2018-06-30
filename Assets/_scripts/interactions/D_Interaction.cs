@@ -33,9 +33,17 @@ public class D_Interaction : ScriptableObject
 
     protected IEnumerator MoveToTarget(D_Character subject, D_ITargetable target)
     {
-        subject.mController.OverrideMovement(true);
+        if ((D_GameMaster.GetInstance().GetCurrentController() as D_PlayerControlPath) != null)
+        {
+            (D_GameMaster.GetInstance().GetCurrentController() as D_PlayerControlPath).FindPathTo(subject.GetNode().GetGrid(), subject.GetTransform().position);
+            Debug.Log("Interaction: MoveToTarget (Path)");
+            
+        }
+        Debug.Log("Interaction: MoveToTarget (Classic)");
 
-        Vector3 ownerToTarget = target.GetTransform().position - subject.GetTransform().position;
+        subject.mController.OverrideMovement(true);
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Interaction_Message)) Debug.Log("MoveToTarget: "+ subject.mName +" is moving to target "+ target.GetTransform().name+"!");
+        Vector3 ownerToTarget = Vector3.Scale(target.GetTransform().position, new Vector3(1f, 0f, 1f)) - Vector3.Scale(subject.GetTransform().position, new Vector3(1f, 0f, 1f));
         Vector3 moveVector;
 
         while (ownerToTarget.magnitude > subject.GetInteractionRange())
@@ -51,17 +59,24 @@ public class D_Interaction : ScriptableObject
 
             if(target.Equals(null))
             {
-                if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Interaction_Error)) Debug.LogError("MoveToTarget: Lost Target!");
+                if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Interaction_Error)) Debug.LogError("Interaction: MoveToTarget - Lost Target!");
                 FinishInteraction(subject, target);
                 yield break;
             }
-            ownerToTarget = target.GetTransform().position - subject.GetTransform().position;
+            ownerToTarget = Vector3.Scale(target.GetTransform().position, new Vector3(1f, 0f, 1f)) - Vector3.Scale(subject.GetTransform().position, new Vector3(1f, 0f, 1f));
         }
 
         subject.mController.mMoveVector = Vector3.zero;
         if (subject.mController == D_GameMaster.GetInstance().GetCurrentController())
         {
-            (D_GameMaster.GetInstance().GetCurrentController() as D_PlayerControlClick).SetDestination(subject.GetTransform().position);
+            if (subject.mController as D_PlayerControlClick != null)
+            {
+                (D_GameMaster.GetInstance().GetCurrentController() as D_PlayerControlClick).SetDestination(subject.GetTransform().position);
+            }
+        }
+        else
+        {
+            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Interaction_Error)) Debug.LogError("MoveToTarget: " + subject.mName + " has the wrong controller: " + subject.mController);
         }
     }
 }

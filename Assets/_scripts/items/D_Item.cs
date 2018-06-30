@@ -8,47 +8,78 @@ using D_StructsAndEnums;
 
 public class D_Item : MonoBehaviour, D_ITargetable, IPointerClickHandler
 {
-    public string mName = "Some Item";
-    public bool bHidden = false;
+    [SerializeField]
+    protected D_ItemData mData;
 
-    public D_IInventory mStashedInInventory;
-    public Sprite mInventorySprite;
+    public D_ItemData GetData()
+    {
+        return mData;
+    }
 
-    public int mParry = 2;
-    public int mIntegrity = 100;
+    public void SetData(D_ItemData data)
+    {
+        mData = data;
+        UpdateMaterial();
+    }
+    
+    protected A_Node mNode;
 
-    public D_Interaction mTargetedByInteraction;
-
+    public int mCurrentIntegrity;
     [HideInInspector]
     public EInteractionRestriction mRestrictionFlags = EInteractionRestriction.IR_World;
 
-    public D_Maslow mOnConsumptionMaslow;
+    // ==============================
+    // ===== GET/SET INTERFACE  =====
+    // ==============================
+    public string GetName() { return GetData().mName; }
 
-    // === Get / Set by Interface ==
-    public string GetName() { return mName; }
-
-    public D_Maslow GetOnConsumptionMaslow() { return mOnConsumptionMaslow; }
+    public D_Maslow GetOnConsumptionMaslow() { return GetData().mOnConsumptionMaslow; }
     public Transform GetTransform() { return transform; }
 
-    public int GetParry() { return mParry; }
-    public int GetIntegrity() { return mIntegrity; }
+    public int GetParry() { return GetData().mParry; }
+    public int GetIntegrity() { return GetData().mIntegrity; }
     public int SetIntegrity(int integrity)
     {
-        mIntegrity = integrity;
-        if (mIntegrity < 0)
+        mCurrentIntegrity = integrity;
+        if (mCurrentIntegrity < 0)
         {
             Destroy(gameObject);
         }
-        return mIntegrity;
+        return mCurrentIntegrity;
     }
 
-    public List<D_Interaction> mPossibleInteractions;
-    public List<D_Interaction> GetInteractions() { return mPossibleInteractions; }
+    public float GetInteractionRange()  { return GetData().mInteractionRange; }
+    public float GetInteractionSpeed()  { return GetData().mInteractionSpeed; }
 
+    // ==============================
+    // =====        GRID        =====
+    // ==============================
+    public A_Node GetNode() { return mNode; }
+    public void SetNode(A_Node node)
+    {
+        if (mNode != null)
+        {
+            mNode.RemoveOccupant(this);
+        }
+
+        node.AddOccupant(this);
+
+        mNode = node;
+    }
+    public ENodeStatus GetOccupyType() { return GetData().mOccupyType; }
+
+
+    // ==============================
+    // =====    INTERACTION     =====
+    // ==============================
+    protected bool bHidden = false;
+    protected D_Interaction mTargetedByInteraction;
+
+    public List<D_Interaction> GetInteractions() { return GetData().mPossibleInteractions; }
     public void Interact(D_CharacterControl cntl, D_Interaction interaction)
     {
         D_Interaction foundInteraction = null;
-        foreach (D_Interaction possibleInt in mPossibleInteractions)
+        foreach (D_Interaction possibleInt in GetData().mPossibleInteractions)
         {
             if (possibleInt == interaction)
             {
@@ -130,7 +161,14 @@ public class D_Item : MonoBehaviour, D_ITargetable, IPointerClickHandler
     {
         mRestrictionFlags = 0;
     }
-        
+
+
+    // ==============================
+    // =====     INVENTORY      =====
+    // ==============================
+    protected D_IInventory mStashedInInventory;
+
+    public D_IInventory GetStashedInInventory() { return mStashedInInventory; }
 
     public void RemoveSelfFromInventory(D_IInventory from)
     {
@@ -182,9 +220,15 @@ public class D_Item : MonoBehaviour, D_ITargetable, IPointerClickHandler
         GetComponent<Collider>().enabled = !value;
     }
 
+    // ==============================
+    // =====  UNITY CALLBACKS   =====
+    // ==============================
     void Start()
     {
         RegisterWithGameMaster();
+        mCurrentIntegrity = GetData().mIntegrity;
+
+        A_Grid.SnapToGrid(this, D_GameMaster.GetInstance().GetCurrentLevel().mGrid);
     }
 
     void OnDestroy()
@@ -198,6 +242,26 @@ public class D_Item : MonoBehaviour, D_ITargetable, IPointerClickHandler
         D_GameMaster.GetInstance().GetCurrentController().PrepareTarget(this);
     }
 
+    void OnValidate()
+    {
+        UpdateMaterial();
+    }
+
+    public void UpdateMaterial()
+    {
+        if (mData != null)
+        {
+            if (GetComponent<Renderer>().sharedMaterial != mData.mBillboard)
+            {
+                GetComponent<Renderer>().sharedMaterial = mData.mBillboard;
+            }
+        }
+        else
+        {
+            GetComponent<Renderer>().sharedMaterial = null;
+        }
+    }
+
     public void RegisterWithGameMaster()
     {
         D_GameMaster.GetInstance().RegisterTargetable(this);
@@ -207,15 +271,5 @@ public class D_Item : MonoBehaviour, D_ITargetable, IPointerClickHandler
     {
         if(D_GameMaster.GetInstance() != null)
             D_GameMaster.GetInstance().UnregisterTargetable(this);
-    }
-
-    public float GetInteractionRange()
-    {
-        return 1f; 
-    }
-
-    public float GetInteractionSpeed()
-    {
-        return 1f;
     }
 }
