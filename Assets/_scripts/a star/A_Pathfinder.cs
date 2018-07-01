@@ -3,59 +3,25 @@ using System.Collections.Generic;
 using UnityEngine;
 using D_StructsAndEnums;
 
-[CreateAssetMenu(fileName = "A_Pathfinder", menuName = "Pathfinder", order = 66)]
-public class A_Pathfinder : ScriptableObject
+public class A_Pathfinder
 {
-    private static A_Pathfinder PATHFINDER;
-
-    public static A_Pathfinder GetInstance()
-    {
-        if(PATHFINDER == null)
-        {
-            A_Pathfinder[] pathfinders = Resources.FindObjectsOfTypeAll<A_Pathfinder>();   // wont work at Runtime: FindObjectOfType<A_Pathfinder>();
-            if (pathfinders.Length < 1)
-            {
-                Debug.LogError("No Pathfinder found!");
-                Debug.Break();
-            }
-            else if (pathfinders.Length > 1)
-            {
-                Debug.LogError("More than one Pathfinder found!");
-                Debug.Break();
-            }
-            else
-            {
-                PATHFINDER = pathfinders[0];
-            }
-
-        }
-        if(PATHFINDER == null)
-        {
-            PATHFINDER = CreateInstance<A_Pathfinder>();
-        }
-        return PATHFINDER;
-    }
-
-    public void TryPath(A_Grid grid, D_CharacterControlPath control, Vector3 targetPos, int maxLoops = 2000)
+    public static IEnumerator TryPath(A_Grid grid, D_CharacterControlPath control, Vector3 targetPos, int maxLoops = 2000, int calcsPerFrame = 10)
     {
         A_Node start = grid.GetNodeByWorldPosition(control.transform.position, true);
         A_Node goal  = grid.GetNodeByWorldPosition(targetPos, true);
 
-        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: Start(" + start.x + "/" + start.y + ") Goal("+goal.x+"/"+goal.y+")");
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) Debug.Log("Pathfinder: Start(" + start.x + "/" + start.y + ") Goal("+goal.x+"/"+goal.y+")");
 
         control.StopCoroutine("FollowWayponts"); // <-- this does not happen, but why?
 
-        A_Waypoint path = FindPath(grid, start, goal, control, maxLoops);
-        if (path != null)
-        {
-            control.WalkPath(path);
-        }
+        yield return FindPath(grid, start, goal, control, maxLoops, calcsPerFrame);
+        
     }
 
-    // MUSS DAS WIRKLICH EINE COROUTINE SEIN?!
-	public A_Waypoint FindPath(A_Grid grid, A_Node start, A_Node goal, D_CharacterControlPath control, int maxLoops)
+    // MUSS DAS WIRKLICH EINE COROUTINE SEIN?! Ja .... weil D_Interaction auf den Path warten muss
+	public static IEnumerator FindPath(A_Grid grid, A_Node start, A_Node goal, D_CharacterControlPath control, int maxLoops, int calcsPerFrame)
     {
-        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: TRYING TO FIND PATH FROM (" + start.x + "/" + start.y + ") TO (" + goal.x + "/" + goal.y + ")");
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) Debug.Log("Pathfinder: TRYING TO FIND PATH FROM (" + start.x + "/" + start.y + ") TO (" + goal.x + "/" + goal.y + ")");
         List<A_Waypoint> openList = new List<A_Waypoint>();
         List<A_Waypoint> closedList = new List<A_Waypoint>();
         List<A_Node> neighbourNodes;
@@ -70,11 +36,15 @@ public class A_Pathfinder : ScriptableObject
 
         while(openList[0].mNode != goal && openList.Count > 0 && loopCount < maxLoops)
         {
-            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: Looping: " + loopCount);
+            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) Debug.Log("Pathfinder: Looping: " + loopCount + "\n Node: ("+ openList[0].mNode.x + "/"+ openList[0].mNode.y + ")");
             loopCount++;
-           // yield return new WaitForEndOfFrame();
+            if (loopCount % calcsPerFrame == 0)
+            {
+                Debug.Log("Pathfinder: Waiting for Frame...");
+                yield return new WaitForEndOfFrame();
+            }
             currentWaypoint = openList[0];
-           // currentWaypoint.mNode.mIndicator.GetComponent<Renderer>().material.color = Color.black;
+
             neighbourNodes = grid.GetNeighboursStraight(currentWaypoint.mNode);
             foreach (A_Node node in neighbourNodes)
             {
@@ -135,18 +105,19 @@ public class A_Pathfinder : ScriptableObject
 
         if(openList[0].mNode == goal)
         {
-            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.Log("Pathfinder: Success!");
+            if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) Debug.Log("Pathfinder: Success!");
 
-            return openList[0];
+            yield return control.WalkPath(openList[0]);
+            yield break;
         }
 
-        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_Path_Message)) Debug.LogWarning("Pathfinder: Failure!");
+        if (D_GameMaster.GetInstance().IsFlagged(EDebugLevel.DL_General_Message)) Debug.LogWarning("Pathfinder: Failure!");
         // Finalize when currentWaypoint is goalNode
         // Abort if openList is empty
-        return null;
+        yield break;
     }
 
-    A_Waypoint GetWaypointWithNode(List<A_Waypoint> openList, A_Node node)
+    static A_Waypoint GetWaypointWithNode(List<A_Waypoint> openList, A_Node node)
     {
         foreach(A_Waypoint waypoint in openList)
         {

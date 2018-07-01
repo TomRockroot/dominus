@@ -4,8 +4,7 @@ using UnityEngine;
 using D_StructsAndEnums;
 using System;
 
-[CreateAssetMenu(fileName = "D_GameMaster", menuName = "Singletons/Game Master", order = 0)]
-public class D_GameMaster : ScriptableObject, D_IInventory
+public class D_GameMaster : MonoBehaviour, D_IInventory
 {
     public D_Character pCharacter;
     public D_Structure pStructure;
@@ -97,25 +96,13 @@ public class D_GameMaster : ScriptableObject, D_IInventory
         if(GAME_MASTER == null)
         {
             Debug.LogWarning("GameMaster: was null!");
-            D_GameMaster[] gameMasters = Resources.FindObjectsOfTypeAll<D_GameMaster>();
+            GAME_MASTER = GameObject.FindObjectOfType<D_GameMaster>();
 
-            // if something is wrong, it is because there are more or less than one GameMaster available
-            if(gameMasters.Length > 1) 
-            {
-                Debug.LogWarning("GameMaster: More than one found!");
-                for(int i = 0; i < gameMasters.Length; i++)
-                {
-                    Debug.LogWarning(i + ": " + gameMasters[i]);
-                }
-                Debug.Break();
-            }
-            if(gameMasters.Length < 1)
+            if(GAME_MASTER == null)
             {
                 Debug.LogWarning("GameMaster: Not found!");
                 Debug.Break();
             }
-
-            GAME_MASTER = gameMasters[0];      // FindObjectOfType<D_GameMaster>();
         }
         return GAME_MASTER; 
     }

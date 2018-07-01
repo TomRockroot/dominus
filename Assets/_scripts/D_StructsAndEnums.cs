@@ -162,11 +162,7 @@ namespace D_StructsAndEnums
 
         DL_SOS_Message = (1 << 27),
         DL_SOS_Warning = (1 << 28),
-        DL_SOS_Error   = (1 << 29),
-
-        DL_Path_Message = (1 << 30),
-        DL_Path_Warning = (1 << 31),
-        DL_Path_Error = (1 << 32)
+        DL_SOS_Error   = (1 << 29)
     }
 
     public enum EUserInterface
